@@ -29,47 +29,66 @@ let database: IDBDatabase | null = null;
 export async function initDB(): Promise<void> {
   if (database) return;
 
-  database = await new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+  database = await new Promise<IDBDatabase>(
+    (resolve, reject) => {
+      const request = indexedDB.open(
+        DB_NAME,
+        DB_VERSION
+      );
 
-    request.onupgradeneeded = () => {
-      const db = request.result;
+      request.onupgradeneeded = () => {
+        const db = request.result;
 
-      if (!db.objectStoreNames.contains("schedules")) {
-        const store = db.createObjectStore("schedules", {
-          keyPath: "id",
-          autoIncrement: true,
-        });
+        if (!db.objectStoreNames.contains("schedules")) {
+          const store = db.createObjectStore(
+            "schedules",
+            {
+              keyPath: "id",
+              autoIncrement: true,
+            }
+          );
 
-        store.createIndex("due_date", "due_date");
-        store.createIndex("completed", "completed");
-      }
+          store.createIndex(
+            "due_date",
+            "due_date"
+          );
 
-      if (!db.objectStoreNames.contains("items")) {
-        const store = db.createObjectStore("items", {
-          keyPath: "id",
-          autoIncrement: true,
-        });
+          store.createIndex(
+            "completed",
+            "completed"
+          );
+        }
 
-        store.createIndex("category", "category");
-      }
+        if (!db.objectStoreNames.contains("items")) {
+          const store = db.createObjectStore(
+            "items",
+            {
+              keyPath: "id",
+              autoIncrement: true,
+            }
+          );
 
-      if (!db.objectStoreNames.contains("documents")) {
-        db.createObjectStore("documents", {
-          keyPath: "id",
-          autoIncrement: true,
-        });
-      }
-    };
+          store.createIndex(
+            "category",
+            "category"
+          );
+        }
+      };
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+      request.onsuccess = () =>
+        resolve(request.result);
+
+      request.onerror = () =>
+        reject(request.error);
+    }
+  );
 }
 
-function requireDB(): IDBDatabase {
+function getDB(): IDBDatabase {
   if (!database) {
-    throw new Error("DB가 아직 초기화되지 않았습니다.");
+    throw new Error(
+      "DB가 초기화되지 않았습니다."
+    );
   }
 
   return database;
@@ -78,38 +97,84 @@ function requireDB(): IDBDatabase {
 function requestResult<T>(
   request: IDBRequest<T>
 ): Promise<T> {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+  return new Promise(
+    (resolve, reject) => {
+      request.onsuccess = () =>
+        resolve(request.result);
+
+      request.onerror = () =>
+        reject(request.error);
+    }
+  );
 }
 
-export async function querySchedules(): Promise<Schedule[]> {
-  const db = requireDB();
+function transactionComplete(
+  transaction: IDBTransaction
+): Promise<void> {
+  return new Promise(
+    (resolve, reject) => {
+      transaction.oncomplete = () =>
+        resolve();
 
-  const transaction = db.transaction(
-    "schedules",
-    "readonly"
+      transaction.onerror = () =>
+        reject(transaction.error);
+
+      transaction.onabort = () =>
+        reject(transaction.error);
+    }
   );
+}
 
-  const store = transaction.objectStore("schedules");
+/* =========================
+   일정
+========================= */
 
-  const result = await requestResult(
-    store.getAll()
-  );
+export async function querySchedules(): Promise<
+  Schedule[]
+> {
+  const db = getDB();
+
+  const transaction =
+    db.transaction(
+      "schedules",
+      "readonly"
+    );
+
+  const result =
+    await requestResult(
+      transaction
+        .objectStore("schedules")
+        .getAll()
+    );
 
   return result
-    .filter((item: Schedule) => item.completed === 0)
-    .sort((a: Schedule, b: Schedule) => {
-      const dateCompare =
-        a.due_date.localeCompare(b.due_date);
+    .filter(
+      (item) =>
+        item.completed === 0
+    )
+    .sort((a, b) =>
+      a.due_date.localeCompare(
+        b.due_date
+      )
+    );
+}
 
-      if (dateCompare !== 0) {
-        return dateCompare;
-      }
+export async function getAllSchedules(): Promise<
+  Schedule[]
+> {
+  const db = getDB();
 
-      return a.priority - b.priority;
-    });
+  const transaction =
+    db.transaction(
+      "schedules",
+      "readonly"
+    );
+
+  return requestResult(
+    transaction
+      .objectStore("schedules")
+      .getAll()
+  );
 }
 
 export async function addSchedule(
@@ -119,87 +184,124 @@ export async function addSchedule(
   category = "일정",
   itemName = ""
 ): Promise<void> {
-  const db = requireDB();
+  const db = getDB();
 
-  const transaction = db.transaction(
-    "schedules",
-    "readwrite"
+  const transaction =
+    db.transaction(
+      "schedules",
+      "readwrite"
+    );
+
+  transaction
+    .objectStore("schedules")
+    .add({
+      title,
+      due_date: dueDate,
+      priority,
+      category,
+      item_name: itemName,
+      completed: 0,
+      created_at:
+        new Date().toISOString(),
+    });
+
+  await transactionComplete(
+    transaction
   );
-
-  transaction.objectStore("schedules").add({
-    title,
-    due_date: dueDate,
-    priority,
-    category,
-    item_name: itemName,
-    completed: 0,
-    created_at: new Date().toISOString(),
-  });
-
-  await transactionComplete(transaction);
 }
 
 export async function completeSchedule(
   id: number
 ): Promise<void> {
-  const db = requireDB();
+  const db = getDB();
 
-  const transaction = db.transaction(
-    "schedules",
-    "readwrite"
-  );
+  const transaction =
+    db.transaction(
+      "schedules",
+      "readwrite"
+    );
 
-  const store = transaction.objectStore("schedules");
+  const store =
+    transaction.objectStore(
+      "schedules"
+    );
 
-  const item = await requestResult(
-    store.get(id)
-  );
+  const item =
+    await requestResult(
+      store.get(id)
+    );
 
   if (item) {
     item.completed = 1;
     store.put(item);
   }
 
-  await transactionComplete(transaction);
+  await transactionComplete(
+    transaction
+  );
 }
 
 export async function deleteSchedule(
   id: number
 ): Promise<void> {
-  const db = requireDB();
+  const db = getDB();
 
-  const transaction = db.transaction(
-    "schedules",
-    "readwrite"
+  const transaction =
+    db.transaction(
+      "schedules",
+      "readwrite"
+    );
+
+  transaction
+    .objectStore("schedules")
+    .delete(id);
+
+  await transactionComplete(
+    transaction
   );
-
-  transaction.objectStore("schedules").delete(id);
-
-  await transactionComplete(transaction);
 }
 
-export async function getItemCounts(): Promise<
-  Record<string, number>
+/* =========================
+   가전 / 관리 항목
+========================= */
+
+export async function getAllItems(): Promise<
+  Item[]
 > {
-  const db = requireDB();
+  const db = getDB();
 
-  const transaction = db.transaction(
-    "items",
-    "readonly"
+  const transaction =
+    db.transaction(
+      "items",
+      "readonly"
+    );
+
+  return requestResult(
+    transaction
+      .objectStore("items")
+      .getAll()
   );
+}
 
-  const items = await requestResult(
-    transaction.objectStore("items").getAll()
+export async function getItemsByCategory(
+  category: string
+): Promise<Item[]> {
+  const db = getDB();
+
+  const transaction =
+    db.transaction(
+      "items",
+      "readonly"
+    );
+
+  const index =
+    transaction
+      .objectStore("items")
+      .index("category");
+
+  return requestResult(
+    index.getAll(category)
   );
-
-  const counts: Record<string, number> = {};
-
-  for (const item of items as Item[]) {
-    counts[item.category] =
-      (counts[item.category] ?? 0) + 1;
-  }
-
-  return counts;
 }
 
 export async function addItem(
@@ -211,49 +313,92 @@ export async function addItem(
   purchasePrice = 0,
   memo = ""
 ): Promise<void> {
-  const db = requireDB();
+  const db = getDB();
 
-  const transaction = db.transaction(
-    "items",
-    "readwrite"
-  );
+  const transaction =
+    db.transaction(
+      "items",
+      "readwrite"
+    );
 
-  transaction.objectStore("items").add({
-    category,
-    name,
-    manufacturer,
-    model,
-    purchase_date: purchaseDate,
-    purchase_price: purchasePrice,
-    memo,
-    created_at: new Date().toISOString(),
-  });
+  transaction
+    .objectStore("items")
+    .add({
+      category,
+      name,
+      manufacturer,
+      model,
+      purchase_date:
+        purchaseDate,
+      purchase_price:
+        purchasePrice,
+      memo,
+      created_at:
+        new Date().toISOString(),
+    });
 
-  await transactionComplete(transaction);
-}
-
-export async function getAllItems(): Promise<Item[]> {
-  const db = requireDB();
-
-  const transaction = db.transaction(
-    "items",
-    "readonly"
-  );
-
-  return requestResult(
-    transaction.objectStore("items").getAll()
+  await transactionComplete(
+    transaction
   );
 }
+
+export async function deleteItem(
+  id: number
+): Promise<void> {
+  const db = getDB();
+
+  const transaction =
+    db.transaction(
+      "items",
+      "readwrite"
+    );
+
+  transaction
+    .objectStore("items")
+    .delete(id);
+
+  await transactionComplete(
+    transaction
+  );
+}
+
+export async function getItemCounts(): Promise<
+  Record<string, number>
+> {
+  const items =
+    await getAllItems();
+
+  const counts: Record<
+    string,
+    number
+  > = {};
+
+  for (const item of items) {
+    counts[item.category] =
+      (counts[item.category] ?? 0) +
+      1;
+  }
+
+  return counts;
+}
+
+/* =========================
+   백업
+========================= */
 
 export async function exportJson(): Promise<string> {
-  const schedules = await getAllSchedules();
-  const items = await getAllItems();
+  const schedules =
+    await getAllSchedules();
+
+  const items =
+    await getAllItems();
 
   return JSON.stringify(
     {
       app: "우리집 통합관리",
       schema_version: 1,
-      exported_at: new Date().toISOString(),
+      exported_at:
+        new Date().toISOString(),
       data: {
         schedules,
         items,
@@ -264,54 +409,34 @@ export async function exportJson(): Promise<string> {
   );
 }
 
-export async function getAllSchedules(): Promise<
-  Schedule[]
-> {
-  const db = requireDB();
-
-  const transaction = db.transaction(
-    "schedules",
-    "readonly"
-  );
-
-  return requestResult(
-    transaction.objectStore("schedules").getAll()
-  );
-}
-
 export async function exportCsvSchedules(): Promise<string> {
-  const rows = await getAllSchedules();
+  const rows =
+    await getAllSchedules();
 
   const header =
     "id,title,due_date,priority,category,item_name,completed,created_at";
 
-  const body = rows.map((r) =>
-    [
-      r.id,
-      csv(r.title),
-      r.due_date,
-      r.priority,
-      csv(r.category),
-      csv(r.item_name),
-      r.completed,
-      r.created_at,
-    ].join(",")
+  const body = rows.map(
+    (r) =>
+      [
+        r.id,
+        csv(r.title),
+        r.due_date,
+        r.priority,
+        csv(r.category),
+        csv(r.item_name),
+        r.completed,
+        r.created_at,
+      ].join(",")
   );
 
-  return "\uFEFF" + [header, ...body].join("\n");
+  return "\uFEFF" +
+    [header, ...body].join("\n");
 }
 
 function csv(value: string): string {
-  return `"${value.replaceAll('"', '""')}"`;
-}
-
-function transactionComplete(
-  transaction: IDBTransaction
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () =>
-      reject(transaction.error);
-  });
+  return `"${value.replaceAll(
+    '"',
+    '""'
+  )}"`;
 }
