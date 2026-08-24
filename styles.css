@@ -9,8 +9,9 @@
     "Malgun Gothic",
     sans-serif;
 
-  color: #20242a;
-  background: #f5f6f8;
+  color: #26364a;
+  background: #f7f9fc;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -25,7 +26,7 @@ body,
 
 body {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #f7f9fc;
 }
 
 button,
@@ -43,20 +44,26 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f6f8;
-  color: #555;
+
+  background: #f7f9fc;
+  color: #526174;
+
   font-size: 18px;
   font-weight: 600;
 }
 
-/* 전체 구조 */
+/* =========================
+   전체 구조
+========================= */
 
 .shell {
   display: flex;
   min-height: 100vh;
 }
 
-/* 사이드바 */
+/* =========================
+   사이드바
+========================= */
 
 .sidebar {
   position: fixed;
@@ -68,7 +75,7 @@ button {
   padding: 28px 16px;
 
   background: #ffffff;
-  border-right: 1px solid #e7e9ed;
+  border-right: 1px solid #e4e9f0;
 
   display: flex;
   flex-direction: column;
@@ -93,10 +100,13 @@ button {
   justify-content: center;
 
   border-radius: 13px;
-  background: #20242a;
+
+  background: #315b85;
   color: #ffffff;
 
   font-size: 22px;
+
+  box-shadow: 0 5px 12px rgba(49, 91, 133, 0.18);
 }
 
 .brand strong,
@@ -105,17 +115,19 @@ button {
 }
 
 .brand strong {
+  color: #26364a;
+
   font-size: 17px;
   line-height: 1.3;
 }
 
 .brand span {
   margin-top: 2px;
-  color: #8a9099;
+
+  color: #8a98a8;
+
   font-size: 12px;
 }
-
-/* 메뉴 */
 
 .sidebar nav {
   display: flex;
@@ -131,7 +143,7 @@ button {
   border-radius: 10px;
 
   background: transparent;
-  color: #646a73;
+  color: #64748b;
 
   display: flex;
   align-items: center;
@@ -140,24 +152,31 @@ button {
   padding: 0 13px;
 
   text-align: left;
+
   font-size: 14px;
   font-weight: 600;
+
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .sidebar nav button span {
   width: 22px;
+
   text-align: center;
+
   font-size: 16px;
 }
 
 .sidebar nav button:hover {
-  background: #f3f4f6;
-  color: #20242a;
+  background: #f1f5f9;
+  color: #315b85;
 }
 
 .sidebar nav button.active {
-  background: #20242a;
-  color: #ffffff;
+  background: #eaf2f9;
+  color: #315b85;
 }
 
 .quick {
@@ -168,11 +187,17 @@ button {
   border: 0;
   border-radius: 11px;
 
-  background: #20242a;
+  background: #315b85;
   color: #ffffff;
 
   font-size: 14px;
   font-weight: 700;
+
+  box-shadow: 0 5px 12px rgba(49, 91, 133, 0.14);
+}
+
+.quick:hover {
+  background: #274c72;
 }
 
 .offline {
@@ -181,17 +206,22 @@ button {
   margin-top: 13px;
   padding: 0 5px;
 
-  color: #8b919a;
+  color: #9aa6b5;
+
   font-size: 10px;
 }
 
-/* 메인 */
+/* =========================
+   메인
+========================= */
 
 .main {
   width: calc(100% - 230px);
+
   margin-left: 230px;
 
   min-height: 100vh;
+
   padding: 34px 42px 60px;
 }
 
@@ -206,7 +236,8 @@ button {
 }
 
 .header small {
-  color: #999fa8;
+  color: #9aa6b5;
+
   font-size: 11px;
   font-weight: 600;
 }
@@ -214,8 +245,11 @@ button {
 .header h1 {
   margin: 3px 0 0;
 
+  color: #26364a;
+
   font-size: 27px;
   line-height: 1.2;
+
   letter-spacing: -0.8px;
 }
 
@@ -231,11 +265,11 @@ button {
 
   padding: 0 14px;
 
-  border: 1px solid #e1e4e8;
+  border: 1px solid #dfe6ee;
   border-radius: 9px;
 
   background: #ffffff;
-  color: #4d535b;
+  color: #617086;
 
   font-size: 12px;
   font-weight: 700;
@@ -243,27 +277,32 @@ button {
 
 .actions button:hover,
 .modal-actions button:hover {
-  background: #f4f5f7;
+  background: #f4f7fa;
 }
 
 button.primary {
   border: 0;
-  background: #20242a;
+
+  background: #315b85;
   color: #ffffff;
+
+  box-shadow: 0 4px 10px rgba(49, 91, 133, 0.12);
 }
 
 button.primary:hover {
-  background: #080a0d;
+  background: #274c72;
 }
 
-/* 히어로 */
+/* =========================
+   히어로
+========================= */
 
 .hero {
   min-height: 190px;
 
   padding: 30px 34px;
 
-  border: 1px solid #e8eaed;
+  border: 1px solid #e3e9f0;
   border-radius: 18px;
 
   background: #ffffff;
@@ -272,21 +311,27 @@ button.primary:hover {
   align-items: center;
   justify-content: space-between;
 
-  box-shadow: 0 3px 15px rgba(20, 25, 30, 0.03);
+  box-shadow:
+    0 4px 18px rgba(55, 75, 95, 0.035);
 }
 
 .hero small {
-  color: #9ba1a9;
+  color: #91a0b0;
+
   font-size: 11px;
   font-weight: 800;
+
   letter-spacing: 1.4px;
 }
 
 .hero h2 {
   margin: 9px 0 0;
 
+  color: #2c4057;
+
   font-size: 28px;
   line-height: 1.45;
+
   letter-spacing: -1px;
 }
 
@@ -299,22 +344,31 @@ button.primary:hover {
 }
 
 .hero-count b {
+  color: #315b85;
+
   font-size: 52px;
   line-height: 1;
+
   letter-spacing: -2px;
 }
 
 .hero-count span {
   margin-top: 8px;
-  color: #90969f;
+
+  color: #8d9aaa;
+
   font-size: 12px;
 }
 
-/* 요약 카드 */
+/* =========================
+   요약 카드
+========================= */
 
 .cards {
   display: grid;
+
   grid-template-columns: repeat(3, 1fr);
+
   gap: 14px;
 
   margin-top: 14px;
@@ -325,7 +379,7 @@ button.primary:hover {
 
   padding: 22px 24px;
 
-  border: 1px solid #e8eaed;
+  border: 1px solid #e3e9f0;
   border-radius: 15px;
 
   background: #ffffff;
@@ -333,11 +387,13 @@ button.primary:hover {
   display: flex;
   flex-direction: column;
 
-  box-shadow: 0 2px 10px rgba(20, 25, 30, 0.025);
+  box-shadow:
+    0 3px 14px rgba(55, 75, 95, 0.03);
 }
 
 .card > span {
-  color: #737981;
+  color: #6f7e90;
+
   font-size: 13px;
   font-weight: 700;
 }
@@ -345,17 +401,21 @@ button.primary:hover {
 .card > b {
   margin-top: 11px;
 
+  color: #2c4057;
+
   font-size: 34px;
   line-height: 1;
+
   letter-spacing: -1px;
 }
 
 .card > b i {
   margin-left: 3px;
 
-  color: #969ba2;
+  color: #98a4b2;
 
   font-size: 12px;
+
   font-style: normal;
   font-weight: 600;
 }
@@ -363,23 +423,26 @@ button.primary:hover {
 .card > small {
   margin-top: auto;
 
-  color: #9ba0a7;
+  color: #9aa6b5;
+
   font-size: 11px;
 }
 
 .card.danger {
-  border-top: 3px solid #d75a5a;
+  border-top: 3px solid #df6b6b;
 }
 
 .card.warning {
-  border-top: 3px solid #d39b3d;
+  border-top: 3px solid #dfae4f;
 }
 
 .card.normal {
-  border-top: 3px solid #7187a8;
+  border-top: 3px solid #6f8fb2;
 }
 
-/* 섹션 */
+/* =========================
+   섹션
+========================= */
 
 .section {
   margin-top: 34px;
@@ -396,45 +459,62 @@ button.primary:hover {
 .section-head h2 {
   margin: 0;
 
+  color: #2c4057;
+
   font-size: 18px;
+
   letter-spacing: -0.5px;
 }
 
 .section-head p {
   margin: 5px 0 0;
 
-  color: #979da5;
+  color: #98a4b2;
+
   font-size: 11px;
 }
 
 .section-head > span {
-  color: #888e97;
+  color: #8290a0;
+
   font-size: 12px;
   font-weight: 700;
 }
 
-/* 일정 리스트 */
+/* =========================
+   일정
+========================= */
 
 .list {
   overflow: hidden;
 
-  border: 1px solid #e8eaed;
+  border: 1px solid #e3e9f0;
   border-radius: 14px;
 
   background: #ffffff;
+
+  box-shadow:
+    0 3px 14px rgba(55, 75, 95, 0.025);
 }
 
 .row {
   min-height: 72px;
 
   display: grid;
-  grid-template-columns: 70px 1fr 110px 58px;
+
+  grid-template-columns:
+    70px
+    1fr
+    110px
+    58px;
+
   align-items: center;
+
   gap: 14px;
 
   padding: 10px 18px;
 
-  border-bottom: 1px solid #f0f1f3;
+  border-bottom: 1px solid #edf1f5;
 }
 
 .row:last-child {
@@ -456,18 +536,18 @@ button.primary:hover {
 }
 
 .row > strong.red {
-  background: #fbe9e9;
-  color: #c34d4d;
+  background: #fdecec;
+  color: #c85656;
 }
 
 .row > strong.yellow {
-  background: #fbf1dd;
-  color: #aa7b28;
+  background: #fff5df;
+  color: #b17e28;
 }
 
 .row > strong.blue {
-  background: #e9eef7;
-  color: #607899;
+  background: #eaf2fa;
+  color: #5d7da0;
 }
 
 .row > div {
@@ -479,7 +559,7 @@ button.primary:hover {
 
   overflow: hidden;
 
-  color: #30343a;
+  color: #34475d;
 
   font-size: 13px;
   font-weight: 700;
@@ -493,45 +573,51 @@ button.primary:hover {
 
   margin-top: 4px;
 
-  color: #9ba0a7;
+  color: #9aa6b5;
+
   font-size: 10px;
 }
 
 .row time {
-  color: #777e87;
+  color: #7d8b9b;
+
   font-size: 11px;
+
   text-align: right;
 }
 
 .row button {
   height: 30px;
 
-  border: 1px solid #e0e3e7;
+  border: 1px solid #dfe6ee;
   border-radius: 7px;
 
   background: #ffffff;
-  color: #777e86;
+  color: #738196;
 
   font-size: 10px;
   font-weight: 700;
 }
 
 .row button:hover {
-  background: #f3f4f6;
-  color: #20242a;
+  background: #f1f5f9;
+  color: #315b85;
 }
 
-/* 빈 상태 */
+/* =========================
+   빈 상태
+========================= */
 
 .empty {
   min-height: 150px;
 
   display: flex;
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
 
-  color: #9ca2aa;
+  color: #9aa6b5;
 }
 
 .empty b {
@@ -544,7 +630,9 @@ button.primary:hover {
 
   border-radius: 50%;
 
-  background: #f2f3f5;
+  background: #eef2f6;
+
+  color: #8291a2;
 
   font-size: 20px;
   font-weight: 400;
@@ -556,11 +644,15 @@ button.primary:hover {
   font-size: 12px;
 }
 
-/* 관리 현황 */
+/* =========================
+   관리 현황
+========================= */
 
 .category-grid {
   display: grid;
+
   grid-template-columns: repeat(4, 1fr);
+
   gap: 10px;
 }
 
@@ -569,38 +661,56 @@ button.primary:hover {
 
   padding: 18px;
 
-  border: 1px solid #e8eaed;
+  border: 1px solid #e3e9f0;
   border-radius: 12px;
 
   background: #ffffff;
 
   display: flex;
   flex-direction: column;
+
   justify-content: space-between;
+
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.category:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 16px rgba(55, 75, 95, 0.06);
 }
 
 .category span {
-  color: #70767f;
+  color: #718096;
+
   font-size: 12px;
   font-weight: 700;
 }
 
 .category b {
+  color: #315b85;
+
   font-size: 23px;
 }
 
-/* 카테고리 페이지 */
+/* =========================
+   카테고리 페이지
+========================= */
 
 .category-hero {
   min-height: 125px;
 
   display: flex;
   align-items: center;
+
   gap: 18px;
 
   padding: 24px;
 
-  border: 1px solid #e8eaed;
+  border: 1px solid #e3e9f0;
   border-radius: 16px;
 
   background: #ffffff;
@@ -616,7 +726,8 @@ button.primary:hover {
 
   border-radius: 15px;
 
-  background: #f0f1f3;
+  background: #eaf2f9;
+  color: #315b85;
 
   font-size: 24px;
 }
@@ -624,13 +735,16 @@ button.primary:hover {
 .category-hero h2 {
   margin: 0;
 
+  color: #2c4057;
+
   font-size: 22px;
 }
 
 .category-hero p {
   margin: 5px 0 0;
 
-  color: #9298a0;
+  color: #929eac;
+
   font-size: 12px;
 }
 
@@ -649,13 +763,14 @@ button.primary:hover {
 
   min-height: 300px;
 
-  border: 1px solid #e8eaed;
+  border: 1px solid #e3e9f0;
   border-radius: 16px;
 
   background: #ffffff;
 
   display: flex;
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
 
@@ -663,11 +778,15 @@ button.primary:hover {
 }
 
 .empty-panel > b {
+  color: #315b85;
+
   font-size: 42px;
 }
 
 .empty-panel h2 {
   margin: 10px 0 0;
+
+  color: #34475d;
 
   font-size: 17px;
 }
@@ -675,25 +794,30 @@ button.primary:hover {
 .empty-panel p {
   margin: 7px 0 18px;
 
-  color: #999fa7;
+  color: #9aa6b5;
+
   font-size: 12px;
 }
 
-/* 모달 */
+/* =========================
+   모달
+========================= */
 
 .modal-bg {
   position: fixed;
+
   inset: 0;
 
   z-index: 100;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
   padding: 20px;
 
-  background: rgba(20, 24, 29, 0.38);
+  background: rgba(36, 50, 66, 0.32);
 }
 
 .modal {
@@ -705,11 +829,13 @@ button.primary:hover {
 
   background: #ffffff;
 
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 20px 70px rgba(30, 45, 60, 0.2);
 }
 
 .modal-title {
   display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
 
@@ -717,14 +843,18 @@ button.primary:hover {
 }
 
 .modal-title small {
-  color: #9ca1a8;
+  color: #94a0ae;
+
   font-size: 9px;
   font-weight: 800;
+
   letter-spacing: 1px;
 }
 
 .modal-title h2 {
   margin: 3px 0 0;
+
+  color: #2c4057;
 
   font-size: 21px;
 }
@@ -736,9 +866,9 @@ button.primary:hover {
   border: 0;
   border-radius: 8px;
 
-  background: #f2f3f5;
+  background: #eef2f6;
 
-  color: #777e87;
+  color: #748194;
 
   font-size: 20px;
 }
@@ -748,7 +878,7 @@ button.primary:hover {
 
   margin-top: 14px;
 
-  color: #656b73;
+  color: #66768a;
 
   font-size: 11px;
   font-weight: 700;
@@ -763,30 +893,37 @@ button.primary:hover {
 
   padding: 0 12px;
 
-  border: 1px solid #dfe2e6;
+  border: 1px solid #dfe6ee;
   border-radius: 9px;
 
   background: #ffffff;
 
-  color: #282c31;
+  color: #34475d;
 
   outline: none;
 }
 
 .modal input:focus,
 .modal select:focus {
-  border-color: #999fa7;
+  border-color: #8da8c2;
+
+  box-shadow:
+    0 0 0 3px rgba(49, 91, 133, 0.08);
 }
 
 .modal-actions {
   display: flex;
+
   justify-content: flex-end;
+
   gap: 7px;
 
   margin-top: 24px;
 }
 
-/* 모바일 */
+/* =========================
+   모바일
+========================= */
 
 @media (max-width: 900px) {
   .sidebar {
@@ -795,6 +932,7 @@ button.primary:hover {
 
   .main {
     width: calc(100% - 190px);
+
     margin-left: 190px;
 
     padding: 25px;
@@ -819,7 +957,7 @@ button.primary:hover {
     padding: 14px;
 
     border-right: 0;
-    border-bottom: 1px solid #e7e9ed;
+    border-bottom: 1px solid #e4e9f0;
   }
 
   .brand {
@@ -828,7 +966,10 @@ button.primary:hover {
 
   .sidebar nav {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+
+    grid-template-columns:
+      repeat(5, 1fr);
+
     gap: 4px;
   }
 
@@ -838,7 +979,9 @@ button.primary:hover {
     padding: 3px;
 
     flex-direction: column;
+
     justify-content: center;
+
     gap: 1px;
 
     font-size: 9px;
@@ -846,6 +989,7 @@ button.primary:hover {
 
   .sidebar nav button span {
     width: auto;
+
     font-size: 15px;
   }
 
@@ -859,6 +1003,7 @@ button.primary:hover {
 
   .main {
     width: 100%;
+
     margin-left: 0;
 
     padding: 18px 14px 40px;
@@ -880,6 +1025,7 @@ button.primary:hover {
 
   .actions button {
     padding: 0 8px;
+
     font-size: 10px;
   }
 
@@ -916,7 +1062,10 @@ button.primary:hover {
   }
 
   .row {
-    grid-template-columns: 55px 1fr 60px;
+    grid-template-columns:
+      55px
+      1fr
+      60px;
 
     gap: 8px;
 
@@ -932,7 +1081,8 @@ button.primary:hover {
   }
 
   .category-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   .category-hero {
@@ -946,4 +1096,4 @@ button.primary:hover {
   .category-hero p {
     font-size: 10px;
   }
-}
+  }
