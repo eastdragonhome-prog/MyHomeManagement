@@ -22,7 +22,7 @@ export type Item = {
 };
 
 const DB_NAME = "our-home-management";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let database: IDBDatabase | null = null;
 
@@ -39,14 +39,19 @@ export async function initDB(): Promise<void> {
       request.onupgradeneeded = () => {
         const db = request.result;
 
-        if (!db.objectStoreNames.contains("schedules")) {
-          const store = db.createObjectStore(
-            "schedules",
-            {
-              keyPath: "id",
-              autoIncrement: true,
-            }
-          );
+        if (
+          !db.objectStoreNames.contains(
+            "schedules"
+          )
+        ) {
+          const store =
+            db.createObjectStore(
+              "schedules",
+              {
+                keyPath: "id",
+                autoIncrement: true,
+              }
+            );
 
           store.createIndex(
             "due_date",
@@ -59,14 +64,19 @@ export async function initDB(): Promise<void> {
           );
         }
 
-        if (!db.objectStoreNames.contains("items")) {
-          const store = db.createObjectStore(
-            "items",
-            {
-              keyPath: "id",
-              autoIncrement: true,
-            }
-          );
+        if (
+          !db.objectStoreNames.contains(
+            "items"
+          )
+        ) {
+          const store =
+            db.createObjectStore(
+              "items",
+              {
+                keyPath: "id",
+                autoIncrement: true,
+              }
+            );
 
           store.createIndex(
             "category",
@@ -87,7 +97,7 @@ export async function initDB(): Promise<void> {
 function getDB(): IDBDatabase {
   if (!database) {
     throw new Error(
-      "DB가 초기화되지 않았습니다."
+      "DB not initialized"
     );
   }
 
@@ -108,73 +118,49 @@ function requestResult<T>(
   );
 }
 
-function transactionComplete(
-  transaction: IDBTransaction
+function txDone(
+  tx: IDBTransaction
 ): Promise<void> {
   return new Promise(
     (resolve, reject) => {
-      transaction.oncomplete = () =>
+      tx.oncomplete = () =>
         resolve();
 
-      transaction.onerror = () =>
-        reject(transaction.error);
+      tx.onerror = () =>
+        reject(tx.error);
 
-      transaction.onabort = () =>
-        reject(transaction.error);
+      tx.onabort = () =>
+        reject(tx.error);
     }
   );
 }
 
-/* =========================
-   일정
-========================= */
+/* 일정 */
 
 export async function querySchedules(): Promise<
   Schedule[]
 > {
-  const db = getDB();
+  const tx = getDB().transaction(
+    "schedules",
+    "readonly"
+  );
 
-  const transaction =
-    db.transaction(
-      "schedules",
-      "readonly"
-    );
-
-  const result =
+  const rows =
     await requestResult(
-      transaction
-        .objectStore("schedules")
-        .getAll()
+      tx.objectStore(
+        "schedules"
+      ).getAll()
     );
 
-  return result
+  return rows
     .filter(
-      (item) =>
-        item.completed === 0
+      (x) => x.completed === 0
     )
     .sort((a, b) =>
       a.due_date.localeCompare(
         b.due_date
       )
     );
-}
-
-export async function getAllSchedules(): Promise<
-  Schedule[]
-> {
-  const db = getDB();
-
-  const transaction =
-    db.transaction(
-      "schedules",
-      "readonly"
-    );
-
-  return requestResult(
-    transaction
-      .objectStore("schedules")
-      .getAll()
-  );
 }
 
 export async function addSchedule(
@@ -184,125 +170,69 @@ export async function addSchedule(
   category = "일정",
   itemName = ""
 ): Promise<void> {
-  const db = getDB();
-
-  const transaction =
-    db.transaction(
-      "schedules",
-      "readwrite"
-    );
-
-  transaction
-    .objectStore("schedules")
-    .add({
-      title,
-      due_date: dueDate,
-      priority,
-      category,
-      item_name: itemName,
-      completed: 0,
-      created_at:
-        new Date().toISOString(),
-    });
-
-  await transactionComplete(
-    transaction
+  const tx = getDB().transaction(
+    "schedules",
+    "readwrite"
   );
+
+  tx.objectStore(
+    "schedules"
+  ).add({
+    title,
+    due_date: dueDate,
+    priority,
+    category,
+    item_name: itemName,
+    completed: 0,
+    created_at:
+      new Date().toISOString(),
+  });
+
+  await txDone(tx);
 }
 
 export async function completeSchedule(
   id: number
 ): Promise<void> {
-  const db = getDB();
-
-  const transaction =
-    db.transaction(
-      "schedules",
-      "readwrite"
-    );
+  const tx = getDB().transaction(
+    "schedules",
+    "readwrite"
+  );
 
   const store =
-    transaction.objectStore(
+    tx.objectStore(
       "schedules"
     );
 
-  const item =
+  const row =
     await requestResult(
       store.get(id)
     );
 
-  if (item) {
-    item.completed = 1;
-    store.put(item);
+  if (row) {
+    row.completed = 1;
+    store.put(row);
   }
 
-  await transactionComplete(
-    transaction
-  );
+  await txDone(tx);
 }
 
-export async function deleteSchedule(
-  id: number
-): Promise<void> {
-  const db = getDB();
-
-  const transaction =
-    db.transaction(
-      "schedules",
-      "readwrite"
-    );
-
-  transaction
-    .objectStore("schedules")
-    .delete(id);
-
-  await transactionComplete(
-    transaction
-  );
-}
-
-/* =========================
-   가전 / 관리 항목
-========================= */
-
-export async function getAllItems(): Promise<
-  Item[]
+export async function getAllSchedules(): Promise<
+  Schedule[]
 > {
-  const db = getDB();
-
-  const transaction =
-    db.transaction(
-      "items",
-      "readonly"
-    );
+  const tx = getDB().transaction(
+    "schedules",
+    "readonly"
+  );
 
   return requestResult(
-    transaction
-      .objectStore("items")
-      .getAll()
+    tx.objectStore(
+      "schedules"
+    ).getAll()
   );
 }
 
-export async function getItemsByCategory(
-  category: string
-): Promise<Item[]> {
-  const db = getDB();
-
-  const transaction =
-    db.transaction(
-      "items",
-      "readonly"
-    );
-
-  const index =
-    transaction
-      .objectStore("items")
-      .index("category");
-
-  return requestResult(
-    index.getAll(category)
-  );
-}
+/* 가전/관리항목 */
 
 export async function addItem(
   category: string,
@@ -313,96 +243,101 @@ export async function addItem(
   purchasePrice = 0,
   memo = ""
 ): Promise<void> {
-  const db = getDB();
+  const tx = getDB().transaction(
+    "items",
+    "readwrite"
+  );
 
-  const transaction =
-    db.transaction(
-      "items",
-      "readwrite"
-    );
+  tx.objectStore("items").add({
+    category,
+    name,
+    manufacturer,
+    model,
+    purchase_date:
+      purchaseDate,
+    purchase_price:
+      purchasePrice,
+    memo,
+    created_at:
+      new Date().toISOString(),
+  });
 
-  transaction
-    .objectStore("items")
-    .add({
-      category,
-      name,
-      manufacturer,
-      model,
-      purchase_date:
-        purchaseDate,
-      purchase_price:
-        purchasePrice,
-      memo,
-      created_at:
-        new Date().toISOString(),
-    });
+  await txDone(tx);
+}
 
-  await transactionComplete(
-    transaction
+export async function getItemsByCategory(
+  category: string
+): Promise<Item[]> {
+  const tx = getDB().transaction(
+    "items",
+    "readonly"
+  );
+
+  return requestResult(
+    tx
+      .objectStore("items")
+      .index("category")
+      .getAll(category)
   );
 }
 
 export async function deleteItem(
   id: number
 ): Promise<void> {
-  const db = getDB();
+  const tx = getDB().transaction(
+    "items",
+    "readwrite"
+  );
 
-  const transaction =
-    db.transaction(
-      "items",
-      "readwrite"
-    );
+  tx.objectStore("items").delete(
+    id
+  );
 
-  transaction
-    .objectStore("items")
-    .delete(id);
+  await txDone(tx);
+}
 
-  await transactionComplete(
-    transaction
+export async function getAllItems(): Promise<
+  Item[]
+> {
+  const tx = getDB().transaction(
+    "items",
+    "readonly"
+  );
+
+  return requestResult(
+    tx.objectStore("items").getAll()
   );
 }
 
 export async function getItemCounts(): Promise<
   Record<string, number>
 > {
-  const items =
+  const rows =
     await getAllItems();
 
-  const counts: Record<
+  const result: Record<
     string,
     number
   > = {};
 
-  for (const item of items) {
-    counts[item.category] =
-      (counts[item.category] ?? 0) +
+  rows.forEach((x) => {
+    result[x.category] =
+      (result[x.category] || 0) +
       1;
-  }
+  });
 
-  return counts;
+  return result;
 }
 
-/* =========================
-   백업
-========================= */
+/* 백업 */
 
 export async function exportJson(): Promise<string> {
-  const schedules =
-    await getAllSchedules();
-
-  const items =
-    await getAllItems();
-
   return JSON.stringify(
     {
-      app: "우리집 통합관리",
-      schema_version: 1,
-      exported_at:
-        new Date().toISOString(),
-      data: {
-        schedules,
-        items,
-      },
+      schedules:
+        await getAllSchedules(),
+      items:
+        await getAllItems(),
     },
     null,
     2
@@ -414,29 +349,15 @@ export async function exportCsvSchedules(): Promise<string> {
     await getAllSchedules();
 
   const header =
-    "id,title,due_date,priority,category,item_name,completed,created_at";
+    "id,title,due_date,priority";
 
   const body = rows.map(
-    (r) =>
-      [
-        r.id,
-        csv(r.title),
-        r.due_date,
-        r.priority,
-        csv(r.category),
-        csv(r.item_name),
-        r.completed,
-        r.created_at,
-      ].join(",")
+    (x) =>
+      `${x.id},"${x.title}",${x.due_date},${x.priority}`
   );
 
-  return "\uFEFF" +
-    [header, ...body].join("\n");
-}
-
-function csv(value: string): string {
-  return `"${value.replaceAll(
-    '"',
-    '""'
-  )}"`;
+  return (
+    "\uFEFF" +
+    [header, ...body].join("\n")
+  );
 }
