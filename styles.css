@@ -1096,4 +1096,108 @@ button.primary:hover {
   .category-hero p {
     font-size: 10px;
   }
+  /* =========================
+   통합관리 UI 업그레이드
+========================= */
+
+.summary-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-box {
+  background: #ffffff;
+  border: 1px solid #e3e9f0;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.summary-box span {
+  display: block;
+  color: #8a98a8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.summary-box b {
+  display: block;
+  margin-top: 6px;
+  font-size: 28px;
+  color: #2c4057;
+}
+
+/* 카테고리 색상 */
+
+.category.appliance {
+  border-top: 4px solid #3b82f6;
+}
+
+.category.car {
+  border-top: 4px solid #22c55e;
+}
+
+.category.mobile {
+  border-top: 4px solid #8b5cf6;
+}
+
+.category.insurance {
+  border-top: 4px solid #f59e0b;
+}
+
+.category.maru {
+  border-top: 4px solid #ec4899;
+}
+
+.category.home {
+  border-top: 4px solid #06b6d4;
+}
+
+.category.gift {
+  border-top: 4px solid #eab308;
+}
+
+.category.document {
+  border-top: 4px solid #64748b;
+}
+
+/* 숫자 강조 */
+
+.category b {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+/* 모바일 버튼 확대 */
+
+.actions button,
+.modal-actions button,
+.category-hero button {
+  min-height: 48px;
+}
+
+/* 일정 강조 */
+
+.row.overdue {
+  border-left: 5px solid #dc2626;
+}
+
+.row.soon {
+  border-left: 5px solid #f97316;
+}
+
+.row.normal-date {
+  border-left: 5px solid #3b82f6;
+}
+
+@media (max-width: 700px) {
+  .summary-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .category b {
+    font-size: 24px;
+  }
+}
   }
