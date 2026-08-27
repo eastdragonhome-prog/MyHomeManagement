@@ -406,7 +406,11 @@ async function refresh() {
 
               <button
                 className="primary"
-                onClick={save}
+                onClick={() =>
+  menu === "appliance"
+    ? saveAppliance()
+    : save()
+}
               >
                 저장
               </button>
