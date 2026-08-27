@@ -7,9 +7,12 @@ import {
   getItemCounts,
   initDB,
   querySchedules,
+  addItem,
+  getItemsByCategory,
+  deleteItem,
   type Schedule,
+  type Item,
 } from "./db";
-
 const MENU = [
   ["home", "⌂", "홈"],
   ["schedule", "▣", "일정"],
@@ -76,14 +79,23 @@ export default function App() {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [priority, setPriority] = useState(2);
+  const [appliances, setAppliances] =
+  useState<Item[]>([]);
+  
+async function refresh() {
+  const scheduleData =
+    await querySchedules();
 
-  async function refresh() {
-    const scheduleData = await querySchedules();
-    const countData = await getItemCounts();
+  const countData =
+    await getItemCounts();
 
-    setSchedules(scheduleData);
-    setCounts(countData);
-  }
+  const applianceData =
+    await getItemsByCategory("가전");
+
+  setSchedules(scheduleData);
+  setCounts(countData);
+  setAppliances(applianceData);
+}
 
   useEffect(() => {
     initDB()
@@ -274,6 +286,10 @@ export default function App() {
               handleComplete
             }
           />
+      ) : menu === "appliance" ? (
+  <AppliancePage
+    items={appliances}
+  />
         ) : (
           <CategoryPage
             label={
@@ -763,3 +779,55 @@ function Empty() {
     </div>
   );
           }
+
+function AppliancePage({
+  items,
+}: {
+  items: Item[];
+}) {
+  return (
+    <section className="section">
+      <div className="section-head">
+        <div>
+          <h2>가전관리</h2>
+          <p>
+            등록된 가전 목록
+          </p>
+        </div>
+
+        <span>
+          {items.length}건
+        </span>
+      </div>
+
+      <div className="list">
+        {items.map((x) => (
+          <div
+            key={x.id}
+            className="row"
+          >
+            <div>
+              <b>{x.name}</b>
+
+              <small>
+                {x.model}
+              </small>
+            </div>
+
+            <time>
+              {x.purchase_date}
+            </time>
+
+            <button>
+              삭제
+            </button>
+          </div>
+        ))}
+
+        {!items.length && (
+          <Empty />
+        )}
+      </div>
+    </section>
+  );
+}
