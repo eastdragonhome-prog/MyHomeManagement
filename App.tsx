@@ -136,7 +136,25 @@ async function refresh() {
       </div>
     );
   }
+async function saveAppliance() {
+  if (!applianceName.trim()) return;
 
+  await addItem({
+    category: "가전",
+    name: applianceName,
+    model: applianceModel,
+    purchase_price:
+      Number(appliancePrice) || 0,
+  });
+
+  setApplianceName("");
+  setApplianceModel("");
+  setAppliancePrice("");
+
+  setModal(false);
+
+  await refresh();
+}
   async function save() {
     if (!title.trim() || !date) return;
 
