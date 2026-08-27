@@ -279,18 +279,16 @@ async function refresh() {
               handleComplete
             }
           />
-        ) : menu === "schedule" ? (
-          <SchedulePage
-            schedules={schedules}
-            onComplete={
-              handleComplete
-            }
-          />
-      ) : menu === "appliance" ? (
+      ) : menu === "schedule" ? (
+  <SchedulePage
+    schedules={schedules}
+    onComplete={handleComplete}
+  />
+) : menu === "appliance" ? (
   <AppliancePage
     items={appliances}
   />
-        ) : (
+) : (
           <CategoryPage
             label={
               CATEGORY_MAP[menu] ??
