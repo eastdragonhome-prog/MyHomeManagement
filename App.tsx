@@ -145,9 +145,26 @@ async function refresh() {
     );
   }
   async function saveAppliance() {
-  alert("가전 등록 준비중");
+  if (!applianceName.trim()) return;
+
+  await addItem(
+    "가전",
+    applianceName,
+    "",
+    applianceModel,
+    "",
+    Number(appliancePrice) || 0,
+    ""
+  );
+
+  setApplianceName("");
+  setApplianceModel("");
+  setAppliancePrice("");
+
+  setModal(false);
+
+  await refresh();
   }
-  
   async function save() {
     if (!title.trim() || !date) return;
 
@@ -417,8 +434,14 @@ async function refresh() {
 
               <button
                 className="primary"
-                onClick={save}
+                
+                onClick={() =>
+  menu === "appliance"
+    ? saveAppliance()
+    : save()
+}
               >
+              }
                 저장
               </button>
             </div>
