@@ -144,25 +144,10 @@ async function refresh() {
       </div>
     );
   }
-async function saveAppliance() {
-  if (!applianceName.trim()) return;
-
-  await addItem({
-    category: "가전",
-    name: applianceName,
-    model: applianceModel,
-    purchase_price:
-      Number(appliancePrice) || 0,
-  });
-
-  setApplianceName("");
-  setApplianceModel("");
-  setAppliancePrice("");
-
-  setModal(false);
-
-  await refresh();
-}
+  async function saveAppliance() {
+  alert("가전 등록 준비중");
+  }
+  
   async function save() {
     if (!title.trim() || !date) return;
 
@@ -432,11 +417,7 @@ async function saveAppliance() {
 
               <button
                 className="primary"
-                onClick={() =>
-  menu === "appliance"
-    ? saveAppliance()
-    : save()
-}
+                onClick={save}
               >
                 저장
               </button>
