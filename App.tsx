@@ -441,7 +441,6 @@ async function refresh() {
     : save()
 }
               >
-              }
                 저장
               </button>
             </div>
