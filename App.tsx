@@ -354,9 +354,13 @@ async function refresh() {
                   QUICK ADD
                 </small>
 
-                <h2>
-                  일정 등록
-                </h2>
+        
+<h2>
+  {menu === "appliance"
+    ? "가전 등록"
+    : "일정 등록"}
+</h2>
+                
               </div>
 
               <button
@@ -368,19 +372,93 @@ async function refresh() {
               </button>
             </div>
 
-            <label>
-              할 일
+            {menu === "appliance" ? (
+  <>
+    <label>
+      제품명
+      <input
+        value={applianceName}
+        onChange={(e) =>
+          setApplianceName(
+            e.target.value
+          )
+        }
+      />
+    </label>
 
-              <input
-                value={title}
-                onChange={(e) =>
-                  setTitle(
-                    e.target.value
-                  )
-                }
-                placeholder="예: 자동차보험 갱신"
-              />
-            </label>
+    <label>
+      모델명
+      <input
+        value={applianceModel}
+        onChange={(e) =>
+          setApplianceModel(
+            e.target.value
+          )
+        }
+      />
+    </label>
+
+    <label>
+      구매금액
+      <input
+        type="number"
+        value={appliancePrice}
+        onChange={(e) =>
+          setAppliancePrice(
+            e.target.value
+          )
+        }
+      />
+    </label>
+  </>
+) : (
+  <>
+    <label>
+      할 일
+      <input
+        value={title}
+        onChange={(e) =>
+          setTitle(e.target.value)
+        }
+      />
+    </label>
+
+    <label>
+      날짜
+      <input
+        type="date"
+        value={date}
+        onChange={(e) =>
+          setDate(e.target.value)
+        }
+      />
+    </label>
+
+    <label>
+      우선순위
+      <select
+        value={priority}
+        onChange={(e) =>
+          setPriority(
+            Number(
+              e.target.value
+            )
+          )
+        }
+      >
+        <option value={1}>
+          긴급
+        </option>
+        <option value={2}>
+          보통
+        </option>
+        <option value={3}>
+          낮음
+        </option>
+      </select>
+    </label>
+  </>
+)}
 
             <label>
               날짜
