@@ -81,6 +81,14 @@ export default function App() {
   const [priority, setPriority] = useState(2);
   const [appliances, setAppliances] =
   useState<Item[]>([]);
+  const [applianceName, setApplianceName] =
+  useState("");
+
+const [applianceModel, setApplianceModel] =
+  useState("");
+
+const [appliancePrice, setAppliancePrice] =
+  useState("");
   
 async function refresh() {
   const scheduleData =
