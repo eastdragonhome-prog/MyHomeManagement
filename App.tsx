@@ -233,10 +233,6 @@ export default function App() {
       Number(appliancePrice) || 0;
 
     if (editingId !== null) {
-      /*
-       * 현재 db.ts의 updateItem은
-       * 제품명 / 모델명 / 구매금액만 수정합니다.
-       */
       await updateItem(
         editingId,
         applianceName.trim(),
@@ -475,7 +471,9 @@ export default function App() {
 
       </main>
 
-      {/* 가전 상세 모달 */}
+      {/* =========================
+          가전 상세 모달
+          ========================= */}
       {selectedAppliance && (
         <div
           className="modal-bg"
@@ -485,7 +483,7 @@ export default function App() {
         >
 
           <div
-            className="modal"
+            className="modal appliance-detail-modal"
             onClick={(e) =>
               e.stopPropagation()
             }
@@ -517,66 +515,66 @@ export default function App() {
 
             </div>
 
-            <label>
-              제조사
+            {/* 제조사 */}
+            <div className="detail-field">
+              <span>제조사</span>
 
-              <input
-                value={
+              <div className="detail-value">
+                {
                   selectedAppliance.manufacturer ||
-                  ""
+                  "-"
                 }
-                readOnly
-              />
-            </label>
+              </div>
+            </div>
 
-            <label>
-              모델명
+            {/* 모델명 */}
+            <div className="detail-field">
+              <span>모델명</span>
 
-              <input
-                value={
+              <div className="detail-value">
+                {
                   selectedAppliance.model ||
-                  ""
+                  "-"
                 }
-                readOnly
-              />
-            </label>
+              </div>
+            </div>
 
-            <label>
-              구매일
+            {/* 구매일 */}
+            <div className="detail-field">
+              <span>구매일</span>
 
-              <input
-                value={
+              <div className="detail-value">
+                {
                   selectedAppliance.purchase_date ||
-                  ""
+                  "-"
                 }
-                readOnly
-              />
-            </label>
+              </div>
+            </div>
 
-            <label>
-              구매금액
+            {/* 구매금액 */}
+            <div className="detail-field">
+              <span>구매금액</span>
 
-              <input
-                value={
+              <div className="detail-value">
+                {
                   selectedAppliance.purchase_price
                     ? `${selectedAppliance.purchase_price.toLocaleString()}원`
-                    : ""
+                    : "-"
                 }
-                readOnly
-              />
-            </label>
+              </div>
+            </div>
 
-            <label>
-              메모
+            {/* 메모 */}
+            <div className="detail-field">
+              <span>메모</span>
 
-              <input
-                value={
+              <div className="detail-value detail-memo">
+                {
                   selectedAppliance.memo ||
-                  ""
+                  "-"
                 }
-                readOnly
-              />
-            </label>
+              </div>
+            </div>
 
             <div className="modal-actions">
 
@@ -618,7 +616,9 @@ export default function App() {
         </div>
       )}
 
-      {/* 등록 / 수정 모달 */}
+      {/* =========================
+          등록 / 수정 모달
+          ========================= */}
       {modal && (
         <div
           className="modal-bg"
@@ -715,6 +715,7 @@ export default function App() {
                   구매일
 
                   <input
+                    className="appliance-date-input"
                     type="date"
                     value={
                       appliancePurchaseDate
@@ -851,7 +852,7 @@ export default function App() {
 
 /* =========================
    Dashboard
-========================= */
+   ========================= */
 
 function Dashboard({
   groups,
@@ -1031,7 +1032,7 @@ function Dashboard({
 
 /* =========================
    Card
-========================= */
+   ========================= */
 
 function Card({
   title,
@@ -1067,7 +1068,7 @@ function Card({
 
 /* =========================
    Schedule Row
-========================= */
+   ========================= */
 
 function Row({
   item,
@@ -1134,7 +1135,7 @@ function Row({
 
 /* =========================
    Schedule Page
-========================= */
+   ========================= */
 
 function SchedulePage({
   schedules,
@@ -1194,7 +1195,7 @@ function SchedulePage({
 
 /* =========================
    Category Page
-========================= */
+   ========================= */
 
 function CategoryPage({
   label,
@@ -1267,7 +1268,7 @@ function CategoryPage({
 
 /* =========================
    Empty
-========================= */
+   ========================= */
 
 function Empty() {
   return (
@@ -1286,7 +1287,7 @@ function Empty() {
 
 /* =========================
    Appliance Page
-========================= */
+   ========================= */
 
 function AppliancePage({
   items,
