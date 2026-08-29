@@ -663,100 +663,95 @@ export default function App() {
 
             {menu === "appliance" ? (
               <>
-                <label>
-                  제품명
+  <label>
+    제품명
+  </label>
 
-                  <input
-                    value={
-                      applianceName
-                    }
-                    onChange={(e) =>
-                      setApplianceName(
-                        e.target.value
-                      )
-                    }
-                    placeholder="제품명을 입력하세요"
-                  />
-                </label>
+  <div className="input-row">
+    <input
+      value={applianceName}
+      onChange={(e) =>
+        setApplianceName(e.target.value)
+      }
+    />
+  </div>
 
-                <label>
-                  제조사
+  <label>
+    제조사
+  </label>
 
-                  <input
-                    value={
-                      applianceManufacturer
-                    }
-                    onChange={(e) =>
-                      setApplianceManufacturer(
-                        e.target.value
-                      )
-                    }
-                    placeholder="제조사를 입력하세요"
-                  />
-                </label>
+  <div className="input-row">
+    <input
+      value={applianceManufacturer}
+      onChange={(e) =>
+        setApplianceManufacturer(e.target.value)
+      }
+    />
+  </div>
 
-                <label>
-                  모델명
+  <label>
+    모델명
+  </label>
 
-                  <input
-                    value={
-                      applianceModel
-                    }
-                    onChange={(e) =>
-                      setApplianceModel(
-                        e.target.value
-                      )
-                    }
-                    placeholder="모델명을 입력하세요"
-                  />
-                </label>
+  <div className="input-row">
+    <input
+      value={applianceModel}
+      onChange={(e) =>
+        setApplianceModel(e.target.value)
+      }
+    />
+  </div>
 
-<label>
-  구매일
-</label>
+  <label>
+    구매일
+  </label>
 
-<div className="input-row">
-  <input
-    className="appliance-date-input"
-    type="date"
-    value={appliancePurchaseDate}
-    onChange={(e) =>
-      setAppliancePurchaseDate(e.target.value)
-    }
-  />
-</div>
+  <div className="input-row">
+    <input
+      className="appliance-date-input"
+      type="date"
+      value={appliancePurchaseDate}
+      onChange={(e) =>
+        setAppliancePurchaseDate(
+          e.target.value
+        )
+      }
+    />
+  </div>
 
-                <label>
-                  구매금액
+  <label>
+    구매금액
+  </label>
 
-                  <input
-                    type="number"
-                    min="0"
-                    value={
-                      appliancePrice
-                    }
-                    onChange={(e) =>
-                      setAppliancePrice(
-                        e.target.value
-                      )
-                    }
-                    placeholder="구매금액을 입력하세요"
-                  />
-                </label>
+  <div className="input-row">
+    <input
+      type="number"
+      value={appliancePrice}
+      onChange={(e) =>
+        setAppliancePrice(
+          e.target.value
+        )
+      }
+    />
+  </div>
 
-<label>
-  메모
+  <label>
+    메모
+  </label>
 
-  <textarea
-    rows={5}
-    value={applianceMemo}
-    onChange={(e) =>
-      setApplianceMemo(e.target.value)
-    }
-    placeholder="메모를 입력하세요"
-  />
-</label>
-              </>
+  <div className="input-row">
+    <textarea
+      rows={5}
+      value={applianceMemo}
+      onChange={(e) =>
+        setApplianceMemo(
+          e.target.value
+        )
+      }
+      placeholder="메모를 입력하세요"
+    />
+  </div>
+</>
             ) : (
               <>
                 <label>
