@@ -79,6 +79,8 @@ export default function App() {
   const [priority, setPriority] = useState(2);
   const [appliances, setAppliances] =
   useState<Item[]>([]);
+  const [selectedAppliance, setSelectedAppliance] =
+  useState<Item | null>(null);
   const [applianceName, setApplianceName] =
   useState("");
 
@@ -113,7 +115,24 @@ async function refresh() {
         console.error("DB 초기화 실패:", error);
       });
   }, []);
+useEffect(() => {
+  const selectAppliance = (event: Event) => {
+    const customEvent = event as CustomEvent<Item>;
+    setSelectedAppliance(customEvent.detail);
+  };
 
+  window.addEventListener(
+    "select-appliance",
+    selectAppliance
+  );
+
+  return () => {
+    window.removeEventListener(
+      "select-appliance",
+      selectAppliance
+    );
+  };
+}, []);
   const groups = useMemo(
     () => ({
       urgent: schedules.filter(
@@ -332,7 +351,94 @@ async function refresh() {
           />
         )}
       </main>
-
+      {selectedAppliance && (
+        <div
+          className="modal-bg"
+          onClick={() => setSelectedAppliance(null)}
+        >
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-title">
+              <div>
+                <small>APPLIANCE DETAIL</small>
+                <h2>{selectedAppliance.name}</h2>
+              </div>
+      
+              <button
+                onClick={() =>
+                  setSelectedAppliance(null)
+                }
+              >
+                ×
+              </button>
+            </div>
+      
+            <label>
+              제조사
+              <input
+                value={
+                  selectedAppliance.manufacturer || ""
+                }
+                readOnly
+              />
+            </label>
+      
+            <label>
+              모델명
+              <input
+                value={
+                  selectedAppliance.model || ""
+                }
+                readOnly
+              />
+            </label>
+      
+            <label>
+              구매일
+              <input
+                value={
+                  selectedAppliance.purchase_date || ""
+                }
+                readOnly
+              />
+            </label>
+      
+            <label>
+              구매금액
+              <input
+                value={
+                  selectedAppliance.purchase_price
+                    ? `${selectedAppliance.purchase_price.toLocaleString()}원`
+                    : ""
+                }
+                readOnly
+              />
+            </label>
+      
+            <label>
+              메모
+              <input
+                value={
+                  selectedAppliance.memo || ""
+                }
+                readOnly
+              />
+            </label>
+      
+            <div className="modal-actions">
+              <button
+                onClick={() =>
+                  setSelectedAppliance(null)
+                }
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {modal && (
         <div
           className="modal-bg"
