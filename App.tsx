@@ -531,7 +531,6 @@ async function saveAppliance() {
       </button>
     </div>
   </div>
-</div>
 
       {modal && (
         <div
