@@ -83,8 +83,6 @@ export default function App() {
   const [selectedAppliance, setSelectedAppliance] =
   useState<Item | null>(null);
   
-  const [selectedAppliance, setSelectedAppliance] =
-  useState<Item | null>(null);
   const [applianceName, setApplianceName] =
   useState("");
 
@@ -219,17 +217,6 @@ useEffect(() => {
   await refresh();
   }
 
-  async function handleDeleteAppliance(id: number) {
-    if (!window.confirm("이 가전을 삭제하시겠습니까?")) {
-      return;
-    }
-  
-    await deleteItem(id);
-  
-    setSelectedAppliance(null);
-  
-    await refresh();
-  }
   async function save() {
     if (!title.trim() || !date) return;
 
