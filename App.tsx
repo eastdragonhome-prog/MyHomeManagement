@@ -18,22 +18,20 @@ const MENU = [
   ["schedule", "▣", "일정"],
   ["appliance", "▤", "가전"],
   ["vehicle", "▰", "자동차"],
-  ["telecom", "◉", "휴대폰/통신"],
   ["insurance", "◇", "보험"],
-  ["maru", "♡", "마루"],
   ["homecare", "⌂", "집관리"],
-  ["gift", "₩", "자녀 증여"],
+  ["family", "♧", "가족"],
+  ["gift", "₩", "증여"],
   ["documents", "□", "문서"],
 ] as const;
 
 const CATEGORY_MAP: Record<string, string> = {
   appliance: "가전",
   vehicle: "자동차",
-  telecom: "휴대폰/통신",
   insurance: "보험",
-  maru: "마루",
   homecare: "집관리",
-  gift: "자녀 증여",
+  family: "가족",
+  gift: "증여",
   documents: "문서",
 };
 
@@ -460,47 +458,6 @@ async function refresh() {
   </>
 )}
 
-            <label>
-              날짜
-
-              <input
-                type="date"
-                value={date}
-                onChange={(e) =>
-                  setDate(
-                    e.target.value
-                  )
-                }
-              />
-            </label>
-
-            <label>
-              우선순위
-
-              <select
-                value={priority}
-                onChange={(e) =>
-                  setPriority(
-                    Number(
-                      e.target.value
-                    )
-                  )
-                }
-              >
-                <option value={1}>
-                  긴급
-                </option>
-
-                <option value={2}>
-                  보통
-                </option>
-
-                <option value={3}>
-                  낮음
-                </option>
-              </select>
-            </label>
-
             <div className="modal-actions">
               <button
                 onClick={() =>
@@ -549,16 +506,15 @@ function Dashboard({
     id: number
   ) => void;
 }) {
-  const categories = [
-    "가전",
-    "자동차",
-    "휴대폰/통신",
-    "보험",
-    "마루",
-    "집관리",
-    "자녀 증여",
-    "문서",
-  ];
+const categories = [
+  "가전",
+  "자동차",
+  "보험",
+  "집관리",
+  "가족",
+  "증여",
+  "문서",
+];
 
   return (
     <div>
