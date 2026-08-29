@@ -25,8 +25,7 @@ body,
 }
 
 body {
-  min-height: 100vh;
-  background: #f7f9fc;
+  font-size: 16px;
 }
 
 button,
@@ -136,29 +135,8 @@ button {
 }
 
 .sidebar nav button {
-  width: 100%;
-  height: 43px;
-
-  border: 0;
-  border-radius: 10px;
-
-  background: transparent;
-  color: #64748b;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  padding: 0 13px;
-
-  text-align: left;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  transition:
-    background 0.15s,
-    color 0.15s;
+  height: 56px;
+  font-size: 11px;
 }
 
 .sidebar nav button span {
@@ -243,14 +221,7 @@ button {
 }
 
 .header h1 {
-  margin: 3px 0 0;
-
-  color: #26364a;
-
-  font-size: 27px;
-  line-height: 1.2;
-
-  letter-spacing: -0.8px;
+  font-size: 28px;
 }
 
 .actions {
@@ -325,14 +296,7 @@ button.primary:hover {
 }
 
 .hero h2 {
-  margin: 9px 0 0;
-
-  color: #2c4057;
-
-  font-size: 28px;
-  line-height: 1.45;
-
-  letter-spacing: -1px;
+  font-size: 30px;
 }
 
 .hero-count {
@@ -344,12 +308,7 @@ button.primary:hover {
 }
 
 .hero-count b {
-  color: #315b85;
-
-  font-size: 52px;
-  line-height: 1;
-
-  letter-spacing: -2px;
+  font-size: 60px;
 }
 
 .hero-count span {
@@ -399,14 +358,7 @@ button.primary:hover {
 }
 
 .card > b {
-  margin-top: 11px;
-
-  color: #2c4057;
-
-  font-size: 34px;
-  line-height: 1;
-
-  letter-spacing: -1px;
+  font-size: 40px;
 }
 
 .card > b i {
@@ -457,13 +409,7 @@ button.primary:hover {
 }
 
 .section-head h2 {
-  margin: 0;
-
-  color: #2c4057;
-
-  font-size: 18px;
-
-  letter-spacing: -0.5px;
+  font-size: 22px;
 }
 
 .section-head p {
@@ -555,27 +501,11 @@ button.primary:hover {
 }
 
 .row > div b {
-  display: block;
-
-  overflow: hidden;
-
-  color: #34475d;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 16px;
 }
 
 .row > div small {
-  display: block;
-
-  margin-top: 4px;
-
-  color: #9aa6b5;
-
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .row time {
@@ -886,21 +816,8 @@ button.primary:hover {
 
 .modal input,
 .modal select {
-  width: 100%;
-  height: 43px;
-
-  margin-top: 6px;
-
-  padding: 0 12px;
-
-  border: 1px solid #dfe6ee;
-  border-radius: 9px;
-
-  background: #ffffff;
-
-  color: #34475d;
-
-  outline: none;
+  height: 50px;
+  font-size: 16px;
 }
 
 .modal input:focus,
@@ -1016,7 +933,7 @@ button.primary:hover {
   }
 
   .header h1 {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .actions {
@@ -1038,7 +955,7 @@ button.primary:hover {
   }
 
   .hero h2 {
-    font-size: 21px;
+    font-size: 24px;
   }
 
   .hero-count {
@@ -1046,7 +963,7 @@ button.primary:hover {
   }
 
   .hero-count b {
-    font-size: 38px;
+    font-size: 46px;
   }
 
   .hero-count span {
