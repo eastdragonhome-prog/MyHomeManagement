@@ -135,9 +135,10 @@ function txDone(
   );
 }
 
+
 /* =========================
    일정
-========================= */
+   ========================= */
 
 export async function querySchedules(): Promise<
   Schedule[]
@@ -234,9 +235,10 @@ export async function getAllSchedules(): Promise<
   );
 }
 
+
 /* =========================
    가전 / 관리항목
-========================= */
+   ========================= */
 
 export async function addItem(
   category: string,
@@ -277,11 +279,26 @@ export async function getItemsByCategory(
     "readonly"
   );
 
-  return requestResult(
-    tx
-      .objectStore("items")
-      .index("category")
-      .getAll(category)
+  const rows =
+    await requestResult(
+      tx
+        .objectStore("items")
+        .index("category")
+        .getAll(category)
+    );
+
+  return rows.sort(
+    (a, b) => {
+      const dateA =
+        a.purchase_date || "";
+
+      const dateB =
+        b.purchase_date || "";
+
+      return dateB.localeCompare(
+        dateA
+      );
+    }
   );
 }
 
@@ -315,14 +332,25 @@ export async function deleteItem(
   await txDone(tx);
 }
 
+
+/*
+ * 가전 전체 정보 수정
+ *
+ * 기존 코드에서는
+ * name / model / purchasePrice만
+ * 필수로 넘겨받고 있었습니다.
+ *
+ * 이제 제조사 / 구매일 / 메모까지
+ * 정상적으로 수정합니다.
+ */
 export async function updateItem(
   id: number,
   name: string,
   model = "",
   purchasePrice = 0,
-  manufacturer?: string,
-  purchaseDate?: string,
-  memo?: string
+  manufacturer = "",
+  purchaseDate = "",
+  memo = ""
 ): Promise<void> {
   const tx = getDB().transaction(
     "items",
@@ -342,24 +370,11 @@ export async function updateItem(
     row.model = model;
     row.purchase_price =
       purchasePrice;
-
-    if (
-      manufacturer !== undefined
-    ) {
-      row.manufacturer =
-        manufacturer;
-    }
-
-    if (
-      purchaseDate !== undefined
-    ) {
-      row.purchase_date =
-        purchaseDate;
-    }
-
-    if (memo !== undefined) {
-      row.memo = memo;
-    }
+    row.manufacturer =
+      manufacturer;
+    row.purchase_date =
+      purchaseDate;
+    row.memo = memo;
 
     store.put(row);
   }
@@ -389,9 +404,10 @@ export async function getItemCounts(): Promise<
   return result;
 }
 
+
 /* =========================
    백업
-========================= */
+   ========================= */
 
 export async function exportJson(): Promise<string> {
   return JSON.stringify(
@@ -415,7 +431,7 @@ export async function exportCsvSchedules(): Promise<string> {
 
   const body = rows.map(
     (x: Schedule) =>
-      `${x.id},"${x.title}",${x.due_date},${x.priority}`
+      `${x.id},"${x.title.replace(/"/g, '""')}",${x.due_date},${x.priority}`
   );
 
   return (
