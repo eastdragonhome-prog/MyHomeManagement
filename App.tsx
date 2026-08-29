@@ -474,31 +474,16 @@ useEffect(() => {
                 닫기
               </button>
               <button
-                onClick={() => {
-                  setEditingId(selectedAppliance.id);
-              
-                  setTitle(selectedAppliance.name || "");
-                  setManufacturer(
-                    selectedAppliance.manufacturer || ""
-                  );
-                  setModel(
-                    selectedAppliance.model || ""
-                  );
-                  setPurchaseDate(
-                    selectedAppliance.purchase_date || ""
-                  );
-                  setPurchasePrice(
-                    selectedAppliance.purchase_price || 0
-                  );
-                  setMemo(
-                    selectedAppliance.memo || ""
-                  );
-              
-                  setModal(true);
-                  setSelectedAppliance(null);
-                }}
-              >
-                수정
+                  onClick={() => {
+                    setEditingId(selectedAppliance.id);
+                
+                    setTitle(selectedAppliance.name || "");
+                
+                    setModal(true);
+                    setSelectedAppliance(null);
+                  }}
+                >
+                  수정
               </button>
               <button
                 className="primary"
