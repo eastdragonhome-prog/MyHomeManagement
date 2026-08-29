@@ -1,425 +1,1375 @@
-export type Schedule = {
-  id: number;
-  title: string;
-  due_date: string;
-  priority: number;
-  category: string;
-  item_name: string;
-  completed: number;
-  created_at: string;
+import { useEffect, useMemo, useState } from "react";
+import {
+  addSchedule,
+  completeSchedule,
+  exportCsvSchedules,
+  exportJson,
+  getItemCounts,
+  initDB,
+  querySchedules,
+  addItem,
+  getItemsByCategory,
+  deleteItem,
+  updateItem,
+  type Schedule,
+  type Item,
+} from "./db";
+
+const MENU = [
+  ["home", "⌂", "홈"],
+  ["schedule", "▣", "일정"],
+  ["appliance", "▤", "가전"],
+  ["vehicle", "▰", "자동차"],
+  ["insurance", "◇", "보험"],
+  ["homecare", "⌂", "집관리"],
+  ["family", "♧", "가족"],
+  ["gift", "₩", "증여"],
+  ["documents", "□", "문서"],
+] as const;
+
+const CATEGORY_MAP: Record<string, string> = {
+  appliance: "가전",
+  vehicle: "자동차",
+  insurance: "보험",
+  homecare: "집관리",
+  family: "가족",
+  gift: "증여",
+  documents: "문서",
 };
 
-export type Item = {
-  id: number;
-  category: string;
-  name: string;
-  manufacturer: string;
-  model: string;
-  purchase_date: string;
-  purchase_price: number;
-  memo: string;
-  created_at: string;
-};
+function dday(date: string) {
+  const a = new Date();
+  a.setHours(0, 0, 0, 0);
 
-const DB_NAME = "our-home-management";
-const DB_VERSION = 2;
+  const b = new Date(`${date}T00:00:00`);
 
-let database: IDBDatabase | null = null;
+  return Math.ceil(
+    (b.getTime() - a.getTime()) / 86400000
+  );
+}
 
-export async function initDB(): Promise<void> {
-  if (database) return;
+function download(
+  name: string,
+  content: BlobPart,
+  type = "text/plain;charset=utf-8"
+) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
 
-  database = await new Promise<IDBDatabase>(
-    (resolve, reject) => {
-      const request = indexedDB.open(
-        DB_NAME,
-        DB_VERSION
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+export default function App() {
+  const [ready, setReady] = useState(false);
+  const [menu, setMenu] = useState("home");
+
+  const [schedules, setSchedules] =
+    useState<Schedule[]>([]);
+
+  const [counts, setCounts] =
+    useState<Record<string, number>>({});
+
+  const [appliances, setAppliances] =
+    useState<Item[]>([]);
+
+  const [modal, setModal] =
+    useState(false);
+
+  const [selectedAppliance, setSelectedAppliance] =
+    useState<Item | null>(null);
+
+  const [editingId, setEditingId] =
+    useState<number | null>(null);
+
+  /* 일정 입력 */
+  const [title, setTitle] =
+    useState("");
+
+  const [date, setDate] =
+    useState("");
+
+  const [priority, setPriority] =
+    useState(2);
+
+  /* 가전 입력 */
+  const [applianceName, setApplianceName] =
+    useState("");
+
+  const [applianceManufacturer, setApplianceManufacturer] =
+    useState("");
+
+  const [applianceModel, setApplianceModel] =
+    useState("");
+
+  const [appliancePurchaseDate, setAppliancePurchaseDate] =
+    useState("");
+
+  const [appliancePrice, setAppliancePrice] =
+    useState("");
+
+  const [applianceMemo, setApplianceMemo] =
+    useState("");
+
+  async function refresh() {
+    const scheduleData =
+      await querySchedules();
+
+    const countData =
+      await getItemCounts();
+
+    const applianceData =
+      await getItemsByCategory("가전");
+
+    setSchedules(scheduleData);
+    setCounts(countData);
+    setAppliances(applianceData);
+  }
+
+  useEffect(() => {
+    initDB()
+      .then(async () => {
+        setReady(true);
+        await refresh();
+      })
+      .catch((error) => {
+        console.error(
+          "DB 초기화 실패:",
+          error
+        );
+      });
+  }, []);
+
+  const groups = useMemo(
+    () => ({
+      urgent: schedules.filter(
+        (x) => dday(x.due_date) <= 0
+      ),
+
+      seven: schedules.filter(
+        (x) =>
+          dday(x.due_date) > 0 &&
+          dday(x.due_date) <= 7
+      ),
+
+      thirty: schedules.filter(
+        (x) =>
+          dday(x.due_date) > 7 &&
+          dday(x.due_date) <= 30
+      ),
+    }),
+    [schedules]
+  );
+
+  function resetApplianceForm() {
+    setApplianceName("");
+    setApplianceManufacturer("");
+    setApplianceModel("");
+    setAppliancePurchaseDate("");
+    setAppliancePrice("");
+    setApplianceMemo("");
+    setEditingId(null);
+  }
+
+  function openAddModal() {
+    if (menu !== "appliance") {
+      setTitle("");
+      setDate("");
+      setPriority(2);
+    }
+
+    resetApplianceForm();
+    setModal(true);
+  }
+
+  function openApplianceEdit(
+    appliance: Item
+  ) {
+    setEditingId(appliance.id);
+
+    setApplianceName(
+      appliance.name || ""
+    );
+
+    setApplianceManufacturer(
+      appliance.manufacturer || ""
+    );
+
+    setApplianceModel(
+      appliance.model || ""
+    );
+
+    setAppliancePurchaseDate(
+      appliance.purchase_date || ""
+    );
+
+    setAppliancePrice(
+      appliance.purchase_price !== undefined &&
+      appliance.purchase_price !== null
+        ? String(appliance.purchase_price)
+        : ""
+    );
+
+    setApplianceMemo(
+      appliance.memo || ""
+    );
+
+    setSelectedAppliance(null);
+    setMenu("appliance");
+    setModal(true);
+  }
+
+  async function saveAppliance() {
+    if (!applianceName.trim()) {
+      return;
+    }
+
+    const price =
+      Number(appliancePrice) || 0;
+
+    if (editingId !== null) {
+      await updateItem(
+        editingId,
+        applianceName.trim(),
+        applianceModel.trim(),
+        price,
+        applianceManufacturer.trim(),
+        appliancePurchaseDate,
+        applianceMemo.trim()
       );
-
-      request.onupgradeneeded = () => {
-        const db = request.result;
-
-        if (
-          !db.objectStoreNames.contains(
-            "schedules"
-          )
-        ) {
-          const store =
-            db.createObjectStore(
-              "schedules",
-              {
-                keyPath: "id",
-                autoIncrement: true,
-              }
-            );
-
-          store.createIndex(
-            "due_date",
-            "due_date"
-          );
-
-          store.createIndex(
-            "completed",
-            "completed"
-          );
-        }
-
-        if (
-          !db.objectStoreNames.contains(
-            "items"
-          )
-        ) {
-          const store =
-            db.createObjectStore(
-              "items",
-              {
-                keyPath: "id",
-                autoIncrement: true,
-              }
-            );
-
-          store.createIndex(
-            "category",
-            "category"
-          );
-        }
-      };
-
-      request.onsuccess = () =>
-        resolve(request.result);
-
-      request.onerror = () =>
-        reject(request.error);
+    } else {
+      await addItem(
+        "가전",
+        applianceName.trim(),
+        applianceManufacturer.trim(),
+        applianceModel.trim(),
+        appliancePurchaseDate,
+        price,
+        applianceMemo.trim()
+      );
     }
-  );
-}
 
-function getDB(): IDBDatabase {
-  if (!database) {
-    throw new Error(
-      "DB not initialized"
-    );
+    resetApplianceForm();
+    setModal(false);
+
+    await refresh();
   }
 
-  return database;
-}
-
-function requestResult<T>(
-  request: IDBRequest<T>
-): Promise<T> {
-  return new Promise(
-    (resolve, reject) => {
-      request.onsuccess = () =>
-        resolve(request.result);
-
-      request.onerror = () =>
-        reject(request.error);
+  async function saveSchedule() {
+    if (!title.trim() || !date) {
+      return;
     }
-  );
-}
 
-function txDone(
-  tx: IDBTransaction
-): Promise<void> {
-  return new Promise(
-    (resolve, reject) => {
-      tx.oncomplete = () =>
-        resolve();
-
-      tx.onerror = () =>
-        reject(tx.error);
-
-      tx.onabort = () =>
-        reject(tx.error);
-    }
-  );
-}
-
-/* =========================
-   일정
-========================= */
-
-export async function querySchedules(): Promise<
-  Schedule[]
-> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readonly"
-  );
-
-  const rows =
-    await requestResult(
-      tx.objectStore(
-        "schedules"
-      ).getAll()
+    await addSchedule(
+      title.trim(),
+      date,
+      priority
     );
 
-  return rows
-    .filter(
-      (x) => x.completed === 0
-    )
-    .sort((a, b) =>
-      a.due_date.localeCompare(
-        b.due_date
+    setTitle("");
+    setDate("");
+    setPriority(2);
+    setModal(false);
+
+    await refresh();
+  }
+
+  async function handleDeleteAppliance(
+    id: number
+  ) {
+    if (
+      !window.confirm(
+        "이 가전을 삭제하시겠습니까?"
       )
-    );
-}
+    ) {
+      return;
+    }
 
-export async function addSchedule(
-  title: string,
-  dueDate: string,
-  priority = 2,
-  category = "일정",
-  itemName = ""
-): Promise<void> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readwrite"
-  );
+    await deleteItem(id);
 
-  tx.objectStore(
-    "schedules"
-  ).add({
-    title,
-    due_date: dueDate,
-    priority,
-    category,
-    item_name: itemName,
-    completed: 0,
-    created_at:
-      new Date().toISOString(),
-  });
+    setSelectedAppliance(null);
 
-  await txDone(tx);
-}
-
-export async function completeSchedule(
-  id: number
-): Promise<void> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readwrite"
-  );
-
-  const store =
-    tx.objectStore(
-      "schedules"
-    );
-
-  const row =
-    await requestResult(
-      store.get(id)
-    );
-
-  if (row) {
-    row.completed = 1;
-    store.put(row);
+    await refresh();
   }
 
-  await txDone(tx);
-}
+  async function handleExportJson() {
+    const data =
+      await exportJson();
 
-export async function getAllSchedules(): Promise<
-  Schedule[]
-> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readonly"
-  );
-
-  return requestResult(
-    tx.objectStore(
-      "schedules"
-    ).getAll()
-  );
-}
-
-/* =========================
-   가전 / 관리항목
-========================= */
-
-export async function addItem(
-  category: string,
-  name: string,
-  manufacturer = "",
-  model = "",
-  purchaseDate = "",
-  purchasePrice = 0,
-  memo = ""
-): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
-  );
-
-  tx.objectStore("items").add({
-    category,
-    name,
-    manufacturer,
-    model,
-    purchase_date:
-      purchaseDate,
-    purchase_price:
-      purchasePrice,
-    memo,
-    created_at:
-      new Date().toISOString(),
-  });
-
-  await txDone(tx);
-}
-
-export async function getItemsByCategory(
-  category: string
-): Promise<Item[]> {
-  const tx = getDB().transaction(
-    "items",
-    "readonly"
-  );
-
-  return requestResult(
-    tx
-      .objectStore("items")
-      .index("category")
-      .getAll(category)
-  );
-}
-
-export async function getAllItems(): Promise<
-  Item[]
-> {
-  const tx = getDB().transaction(
-    "items",
-    "readonly"
-  );
-
-  return requestResult(
-    tx.objectStore(
-      "items"
-    ).getAll()
-  );
-}
-
-export async function deleteItem(
-  id: number
-): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
-  );
-
-  tx.objectStore(
-    "items"
-  ).delete(id);
-
-  await txDone(tx);
-}
-
-export async function updateItem(
-  id: number,
-  name: string,
-  model = "",
-  purchasePrice = 0,
-  manufacturer?: string,
-  purchaseDate?: string,
-  memo?: string
-): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
-  );
-
-  const store =
-    tx.objectStore("items");
-
-  const row =
-    await requestResult(
-      store.get(id)
+    download(
+      "우리집_통합관리.json",
+      data,
+      "application/json"
     );
-
-  if (row) {
-    row.name = name;
-    row.model = model;
-    row.purchase_price =
-      purchasePrice;
-
-    if (
-      manufacturer !== undefined
-    ) {
-      row.manufacturer =
-        manufacturer;
-    }
-
-    if (
-      purchaseDate !== undefined
-    ) {
-      row.purchase_date =
-        purchaseDate;
-    }
-
-    if (memo !== undefined) {
-      row.memo = memo;
-    }
-
-    store.put(row);
   }
 
-  await txDone(tx);
-}
+  async function handleExportCsv() {
+    const data =
+      await exportCsvSchedules();
 
-export async function getItemCounts(): Promise<
-  Record<string, number>
-> {
-  const rows =
-    await getAllItems();
+    download(
+      "우리집_일정.csv",
+      data,
+      "text/csv;charset=utf-8"
+    );
+  }
 
-  const result: Record<
-    string,
-    number
-  > = {};
+  async function handleComplete(
+    id: number
+  ) {
+    await completeSchedule(id);
+    await refresh();
+  }
 
-  rows.forEach(
-    (x: Item) => {
-      result[x.category] =
-        (result[x.category] || 0) +
-        1;
-    }
-  );
-
-  return result;
-}
-
-/* =========================
-   백업
-========================= */
-
-export async function exportJson(): Promise<string> {
-  return JSON.stringify(
-    {
-      schedules:
-        await getAllSchedules(),
-      items:
-        await getAllItems(),
-    },
-    null,
-    2
-  );
-}
-
-export async function exportCsvSchedules(): Promise<string> {
-  const rows =
-    await getAllSchedules();
-
-  const header =
-    "id,title,due_date,priority";
-
-  const body = rows.map(
-    (x: Schedule) =>
-      `${x.id},"${x.title}",${x.due_date},${x.priority}`
-  );
+  if (!ready) {
+    return (
+      <div className="loading">
+        우리집 통합관리 준비 중...
+      </div>
+    );
+  }
 
   return (
-    "\uFEFF" +
-    [header, ...body].join("\n")
+    <div className="shell">
+
+      <aside className="sidebar">
+
+        <div className="brand">
+          <b>⌂</b>
+
+          <div>
+            <strong>우리집</strong>
+            <span>통합관리</span>
+          </div>
+        </div>
+
+        <nav>
+          {MENU.map(
+            ([id, icon, label]) => (
+              <button
+                key={id}
+                className={
+                  menu === id
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setMenu(id)
+                }
+              >
+                <span>{icon}</span>
+                {label}
+              </button>
+            )
+          )}
+        </nav>
+
+        <button
+          className="quick"
+          onClick={openAddModal}
+        >
+          ＋ 빠른 등록
+        </button>
+
+        <small className="offline">
+          ● 오프라인 기본 기능 사용 가능
+        </small>
+
+      </aside>
+
+      <main className="main">
+
+        <header className="header">
+
+          <div>
+            <small>
+              우리집 통합관리
+            </small>
+
+            <h1>
+              {
+                MENU.find(
+                  (x) =>
+                    x[0] === menu
+                )?.[2]
+              }
+            </h1>
+          </div>
+
+          <div className="actions">
+
+            <button
+              onClick={
+                handleExportJson
+              }
+            >
+              JSON
+            </button>
+
+            <button
+              onClick={
+                handleExportCsv
+              }
+            >
+              CSV
+            </button>
+
+            <button
+              className="primary"
+              onClick={openAddModal}
+            >
+              ＋ 등록
+            </button>
+
+          </div>
+
+        </header>
+
+        {menu === "home" ? (
+          <Dashboard
+            groups={groups}
+            schedules={schedules}
+            counts={counts}
+            onComplete={
+              handleComplete
+            }
+          />
+        ) : menu === "schedule" ? (
+          <SchedulePage
+            schedules={schedules}
+            onComplete={
+              handleComplete
+            }
+          />
+        ) : menu === "appliance" ? (
+          <AppliancePage
+            items={appliances}
+            onSelect={
+              setSelectedAppliance
+            }
+            onDelete={
+              handleDeleteAppliance
+            }
+          />
+        ) : (
+          <CategoryPage
+            label={
+              CATEGORY_MAP[menu] ??
+              "관리"
+            }
+            count={
+              counts[
+                CATEGORY_MAP[menu] ??
+                  ""
+              ] ?? 0
+            }
+            onAdd={openAddModal}
+          />
+        )}
+
+      </main>
+
+      {/* =========================
+          가전 상세 모달
+          ========================= */}
+      {selectedAppliance && (
+        <div
+          className="modal-bg"
+          onClick={() =>
+            setSelectedAppliance(null)
+          }
+        >
+
+          <div
+            className="modal appliance-detail-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            <div className="modal-title">
+
+              <div>
+                <small>
+                  APPLIANCE DETAIL
+                </small>
+
+                <h2>
+                  {
+                    selectedAppliance.name
+                  }
+                </h2>
+              </div>
+
+              <button
+                onClick={() =>
+                  setSelectedAppliance(
+                    null
+                  )
+                }
+              >
+                ×
+              </button>
+
+            </div>
+
+            <div className="detail-field">
+              <span>제조사</span>
+
+              <div className="detail-value">
+                {
+                  selectedAppliance.manufacturer ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>모델명</span>
+
+              <div className="detail-value">
+                {
+                  selectedAppliance.model ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>구매일</span>
+
+              <div className="detail-value">
+                {
+                  selectedAppliance.purchase_date ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>구매금액</span>
+
+              <div className="detail-value">
+                {
+                  selectedAppliance.purchase_price
+                    ? `${selectedAppliance.purchase_price.toLocaleString()}원`
+                    : "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>메모</span>
+
+              <div className="detail-value detail-memo">
+                {
+                  selectedAppliance.memo ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="modal-actions">
+
+              <button
+                onClick={() =>
+                  openApplianceEdit(
+                    selectedAppliance
+                  )
+                }
+              >
+                수정
+              </button>
+
+              <button
+                className="primary"
+                onClick={() =>
+                  handleDeleteAppliance(
+                    selectedAppliance.id
+                  )
+                }
+              >
+                삭제
+              </button>
+
+              <button
+                onClick={() =>
+                  setSelectedAppliance(
+                    null
+                  )
+                }
+              >
+                닫기
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* =========================
+          등록 / 수정 모달
+          ========================= */}
+      {modal && (
+        <div
+          className="modal-bg"
+          onMouseDown={() =>
+            setModal(false)
+          }
+        >
+
+          <div
+            className="modal"
+            onMouseDown={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            <div className="modal-title">
+
+              <div>
+                <small>
+                  {menu === "appliance"
+                    ? editingId !== null
+                      ? "EDIT APPLIANCE"
+                      : "QUICK ADD"
+                    : "QUICK ADD"}
+                </small>
+
+                <h2>
+                  {menu === "appliance"
+                    ? editingId !== null
+                      ? "가전 수정"
+                      : "가전 등록"
+                    : "일정 등록"}
+                </h2>
+              </div>
+
+              <button
+                onClick={() =>
+                  setModal(false)
+                }
+              >
+                ×
+              </button>
+
+            </div>
+
+            {menu === "appliance" ? (
+              <>
+                <label>
+                  제품명
+
+                  <input
+                    value={
+                      applianceName
+                    }
+                    onChange={(e) =>
+                      setApplianceName(
+                        e.target.value
+                      )
+                    }
+                    placeholder="제품명을 입력하세요"
+                  />
+                </label>
+
+                <label>
+                  제조사
+
+                  <input
+                    value={
+                      applianceManufacturer
+                    }
+                    onChange={(e) =>
+                      setApplianceManufacturer(
+                        e.target.value
+                      )
+                    }
+                    placeholder="제조사를 입력하세요"
+                  />
+                </label>
+
+                <label>
+                  모델명
+
+                  <input
+                    value={
+                      applianceModel
+                    }
+                    onChange={(e) =>
+                      setApplianceModel(
+                        e.target.value
+                      )
+                    }
+                    placeholder="모델명을 입력하세요"
+                  />
+                </label>
+
+                <label>
+                  구매일
+
+                  <input
+                    className="appliance-date-input"
+                    type="date"
+                    value={
+                      appliancePurchaseDate
+                    }
+                    onChange={(e) =>
+                      setAppliancePurchaseDate(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  구매금액
+
+                  <input
+                    type="number"
+                    min="0"
+                    value={
+                      appliancePrice
+                    }
+                    onChange={(e) =>
+                      setAppliancePrice(
+                        e.target.value
+                      )
+                    }
+                    placeholder="구매금액을 입력하세요"
+                  />
+                </label>
+
+                <label>
+                  메모
+
+                  <input
+                    value={
+                      applianceMemo
+                    }
+                    onChange={(e) =>
+                      setApplianceMemo(
+                        e.target.value
+                      )
+                    }
+                    placeholder="메모를 입력하세요"
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <label>
+                  할 일
+
+                  <input
+                    value={title}
+                    onChange={(e) =>
+                      setTitle(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  날짜
+
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) =>
+                      setDate(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  우선순위
+
+                  <select
+                    value={priority}
+                    onChange={(e) =>
+                      setPriority(
+                        Number(
+                          e.target.value
+                        )
+                      )
+                    }
+                  >
+                    <option value={1}>
+                      긴급
+                    </option>
+
+                    <option value={2}>
+                      보통
+                    </option>
+
+                    <option value={3}>
+                      낮음
+                    </option>
+                  </select>
+                </label>
+              </>
+            )}
+
+            <div className="modal-actions">
+
+              <button
+                onClick={() =>
+                  setModal(false)
+                }
+              >
+                취소
+              </button>
+
+              <button
+                className="primary"
+                onClick={() =>
+                  menu === "appliance"
+                    ? saveAppliance()
+                    : saveSchedule()
+                }
+              >
+                저장
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+/* =========================
+   Dashboard
+   ========================= */
+
+function Dashboard({
+  groups,
+  schedules,
+  counts,
+  onComplete,
+}: {
+  groups: {
+    urgent: Schedule[];
+    seven: Schedule[];
+    thirty: Schedule[];
+  };
+
+  schedules: Schedule[];
+
+  counts: Record<string, number>;
+
+  onComplete: (
+    id: number
+  ) => void;
+}) {
+  const categories = [
+    "가전",
+    "자동차",
+    "보험",
+    "집관리",
+    "가족",
+    "증여",
+    "문서",
+  ];
+
+  return (
+    <div>
+
+      <section className="hero">
+
+        <div>
+          <small>TODAY</small>
+
+          <h2>
+            이번 달에 해야 할 일을
+            <br />
+            한눈에 확인하세요.
+          </h2>
+        </div>
+
+        <div className="hero-count">
+          <b>
+            {schedules.length}
+          </b>
+
+          <span>
+            개의 예정 일정
+          </span>
+        </div>
+
+      </section>
+
+      <section className="cards">
+
+        <Card
+          title="오늘/기한 초과"
+          value={
+            groups.urgent.length
+          }
+          desc="즉시 확인이 필요한 일정"
+          cls="danger"
+        />
+
+        <Card
+          title="7일 이내"
+          value={
+            groups.seven.length
+          }
+          desc="이번 주에 처리할 일정"
+          cls="warning"
+        />
+
+        <Card
+          title="30일 이내"
+          value={
+            groups.thirty.length
+          }
+          desc="미리 준비할 일정"
+          cls="normal"
+        />
+
+      </section>
+
+      <section className="section">
+
+        <div className="section-head">
+
+          <div>
+            <h2>
+              다가오는 일정
+            </h2>
+
+            <p>
+              가까운 일정부터 표시합니다.
+            </p>
+          </div>
+
+          <span>
+            {schedules.length}건
+          </span>
+
+        </div>
+
+        <div className="list">
+
+          {schedules
+            .slice(0, 10)
+            .map((s) => (
+              <Row
+                key={s.id}
+                item={s}
+                onComplete={
+                  onComplete
+                }
+              />
+            ))}
+
+          {!schedules.length && (
+            <Empty />
+          )}
+
+        </div>
+
+      </section>
+
+      <section className="section">
+
+        <div className="section-head">
+
+          <div>
+            <h2>
+              관리 현황
+            </h2>
+
+            <p>
+              우리집 주요 관리 항목
+            </p>
+          </div>
+
+        </div>
+
+        <div className="category-grid">
+
+          {categories.map(
+            (category) => (
+              <div
+                className="category"
+                key={category}
+              >
+                <span>
+                  {category}
+                </span>
+
+                <b>
+                  {counts[
+                    category
+                  ] ?? 0}
+                </b>
+              </div>
+            )
+          )}
+
+        </div>
+
+      </section>
+
+    </div>
+  );
+}
+
+/* =========================
+   Card
+   ========================= */
+
+function Card({
+  title,
+  value,
+  desc,
+  cls,
+}: {
+  title: string;
+  value: number;
+  desc: string;
+  cls: string;
+}) {
+  return (
+    <div
+      className={`card ${cls}`}
+    >
+      <span>
+        {title}
+      </span>
+
+      <b>
+        {value}
+        <i>건</i>
+      </b>
+
+      <small>
+        {desc}
+      </small>
+    </div>
+  );
+}
+
+/* =========================
+   Schedule Row
+   ========================= */
+
+function Row({
+  item,
+  onComplete,
+}: {
+  item: Schedule;
+
+  onComplete: (
+    id: number
+  ) => void;
+}) {
+  const n = dday(
+    item.due_date
+  );
+
+  const label =
+    n < 0
+      ? "지연"
+      : n === 0
+      ? "오늘"
+      : `D-${n}`;
+
+  return (
+    <div className="row">
+
+      <strong
+        className={
+          n <= 0
+            ? "red"
+            : n <= 7
+            ? "yellow"
+            : "blue"
+        }
+      >
+        {label}
+      </strong>
+
+      <div>
+        <b>
+          {item.title}
+        </b>
+
+        <small>
+          {item.category}
+        </small>
+      </div>
+
+      <time>
+        {item.due_date}
+      </time>
+
+      <button
+        onClick={() =>
+          onComplete(item.id)
+        }
+      >
+        완료
+      </button>
+
+    </div>
+  );
+}
+
+/* =========================
+   Schedule Page
+   ========================= */
+
+function SchedulePage({
+  schedules,
+  onComplete,
+}: {
+  schedules: Schedule[];
+
+  onComplete: (
+    id: number
+  ) => void;
+}) {
+  return (
+    <section className="section">
+
+      <div className="section-head">
+
+        <div>
+          <h2>
+            전체 일정
+          </h2>
+
+          <p>
+            등록된 해야 할 일을 관리합니다.
+          </p>
+        </div>
+
+        <span>
+          {schedules.length}건
+        </span>
+
+      </div>
+
+      <div className="list">
+
+        {schedules.map(
+          (s) => (
+            <Row
+              key={s.id}
+              item={s}
+              onComplete={
+                onComplete
+              }
+            />
+          )
+        )}
+
+        {!schedules.length && (
+          <Empty />
+        )}
+
+      </div>
+
+    </section>
+  );
+}
+
+/* =========================
+   Category Page
+   ========================= */
+
+function CategoryPage({
+  label,
+  count,
+  onAdd,
+}: {
+  label: string;
+  count: number;
+  onAdd: () => void;
+}) {
+  return (
+    <div>
+
+      <section className="category-hero">
+
+        <div className="big-icon">
+          □
+        </div>
+
+        <div>
+          <h2>
+            {label}
+          </h2>
+
+          <p>
+            관리 대상과 기록, 일정,
+            문서를 관리합니다.
+          </p>
+        </div>
+
+        <button
+          className="primary"
+          onClick={onAdd}
+        >
+          ＋ 등록
+        </button>
+
+      </section>
+
+      <div className="empty-panel">
+
+        <b>
+          {count}
+        </b>
+
+        <h2>
+          {count
+            ? "등록된 항목이 있습니다."
+            : "아직 등록된 항목이 없습니다."}
+        </h2>
+
+        <p>
+          다음 단계에서 상세 입력 화면을
+          연결합니다.
+        </p>
+
+        <button
+          className="primary"
+          onClick={onAdd}
+        >
+          등록 시작
+        </button>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =========================
+   Empty
+   ========================= */
+
+function Empty() {
+  return (
+    <div className="empty">
+
+      <b>＋</b>
+
+      <p>
+        등록된 일정이 없습니다.
+      </p>
+
+    </div>
+  );
+}
+
+/* =========================
+   Appliance Page
+   ========================= */
+
+function AppliancePage({
+  items,
+  onSelect,
+  onDelete,
+}: {
+  items: Item[];
+
+  onSelect: (
+    item: Item
+  ) => void;
+
+  onDelete: (
+    id: number
+  ) => void;
+}) {
+  return (
+    <section className="section">
+
+      <div className="section-head">
+
+        <div>
+          <h2>
+            가전관리
+          </h2>
+
+          <p>
+            등록된 가전 목록
+          </p>
+        </div>
+
+        <span>
+          {items.length}건
+        </span>
+
+      </div>
+
+      <div className="list">
+
+        {items.map(
+          (x) => (
+            <div
+              key={x.id}
+              className="row"
+              onClick={() =>
+                onSelect(x)
+              }
+              style={{
+                cursor: "pointer",
+              }}
+            >
+
+              <div>
+                <b>
+                  {x.name}
+                </b>
+
+                <small>
+                  {x.model}
+                </small>
+              </div>
+
+              <time>
+                {x.purchase_date}
+              </time>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  onDelete(x.id);
+                }}
+              >
+                삭제
+              </button>
+
+            </div>
+          )
+        )}
+
+        {!items.length && (
+          <Empty />
+        )}
+
+      </div>
+
+    </section>
   );
 }
