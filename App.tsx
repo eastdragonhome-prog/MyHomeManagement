@@ -2165,139 +2165,95 @@ function SchedulePage({
    Category Page
    ========================= */
 
-function CategoryPage({
-  label,
-  count,
-  items,
-  onSelect,
-  onDelete,
-  onAdd,
-}: {
+type CategoryPageProps = {
   label: string;
   count: number;
   items?: Item[];
   onSelect?: (item: Item) => void;
-  onDelete?: (id: number) => void;
+  onDelete?: (id: number) => void | Promise<void>;
   onAdd: () => void;
-}) {
+};
+
+function CategoryPage({
+  label,
+  count,
+  items = [],
+  onSelect,
+  onDelete,
+}: CategoryPageProps) {
   return (
     <div>
-
       <section className="category-hero">
-
-        <div className="big-icon">
-          □
-        </div>
+        <div className="big-icon">□</div>
 
         <div>
-          <h2>
-            {label}
-          </h2>
+          <h2>{label}</h2>
 
           <p>
             관리 대상과 기록, 일정,
             문서를 관리합니다.
           </p>
         </div>
-
-        <button
-          className="primary"
-          onClick={onAdd}
-        >
-          ＋ 등록
-        </button>
-
       </section>
 
       <section className="section">
-
         <div className="section-head">
-
           <div>
-            <h2>
-              {label} 목록
-            </h2>
+            <h2>{label} 목록</h2>
 
-            <p>
-              등록된 {label} 항목
-            </p>
+            <p>등록된 {label} 항목</p>
           </div>
 
-          <span>
-            {count}건
-          </span>
-
+          <span>{count}건</span>
         </div>
 
         <div className="list">
-
-          {items && items.length > 0 ? (
+          {items.length > 0 ? (
             items.map((item) => (
               <div
                 key={item.id}
                 className="row"
-                onClick={() =>
-                  onSelect?.(item)
-                }
+                onClick={() => onSelect?.(item)}
                 style={{
-                  cursor: onSelect
-                    ? "pointer"
-                    : "default",
+                  cursor: onSelect ? "pointer" : "default",
                 }}
               >
-
                 <div>
-                  <b>
-                    {item.name}
-                  </b>
+                  <b>{item.name}</b>
 
-                  <small>
-                    {item.manufacturer}
-                    {item.manufacturer &&
-                    item.model
-                      ? " · "
-                      : ""}
-                    {item.model}
-                  </small>
+                  {(item.manufacturer || item.model) && (
+                    <small>
+                      {item.manufacturer}
+                      {item.manufacturer && item.model ? " · " : ""}
+                      {item.model}
+                    </small>
+                  )}
                 </div>
 
-                <time>
-                  {item.purchase_date}
-                </time>
+                <time>{item.purchase_date}</time>
 
                 {onDelete && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete(item.id);
+                      void onDelete(item.id);
                     }}
                   >
                     삭제
                   </button>
                 )}
-
               </div>
             ))
           ) : (
-            <div className="empty">
-
-              <b>＋</b>
-
-              <p>
-                등록된 {label} 항목이 없습니다.
-              </p>
-
-            </div>
+            <p className="empty-message">
+              등록된 {label} 항목이 없습니다.
+            </p>
           )}
-
         </div>
-
       </section>
-
     </div>
   );
 }
-
 
 /* =========================
    Empty
