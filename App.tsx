@@ -474,16 +474,20 @@ useEffect(() => {
                 닫기
               </button>
               <button
-                  onClick={() => {
-                    setEditingId(selectedAppliance.id);
-                
-                    setTitle(selectedAppliance.name || "");
-                
-                    setModal(true);
-                    setSelectedAppliance(null);
-                  }}
-                >
-                  수정
+                onClick={() => {
+                  setEditingId(selectedAppliance.id);
+              
+                  setMenu("appliance");
+              
+                  setApplianceName(
+                    selectedAppliance.name || ""
+                  );
+              
+                  setModal(true);
+                  setSelectedAppliance(null);
+                }}
+              >
+                수정
               </button>
               <button
                 className="primary"
