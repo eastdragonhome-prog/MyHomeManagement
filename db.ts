@@ -29,140 +29,75 @@ let database: IDBDatabase | null = null;
 export async function initDB(): Promise<void> {
   if (database) return;
 
-  database = await new Promise<IDBDatabase>(
-    (resolve, reject) => {
-      const request = indexedDB.open(
-        DB_NAME,
-        DB_VERSION
-      );
+  database = await new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-      request.onupgradeneeded = () => {
-        const db = request.result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
 
-        if (
-          !db.objectStoreNames.contains(
-            "schedules"
-          )
-        ) {
-          const store =
-            db.createObjectStore(
-              "schedules",
-              {
-                keyPath: "id",
-                autoIncrement: true,
-              }
-            );
+      if (!db.objectStoreNames.contains("schedules")) {
+        const store = db.createObjectStore("schedules", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
 
-          store.createIndex(
-            "due_date",
-            "due_date"
-          );
+        store.createIndex("due_date", "due_date");
+        store.createIndex("completed", "completed");
+      }
 
-          store.createIndex(
-            "completed",
-            "completed"
-          );
-        }
+      if (!db.objectStoreNames.contains("items")) {
+        const store = db.createObjectStore("items", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
 
-        if (
-          !db.objectStoreNames.contains(
-            "items"
-          )
-        ) {
-          const store =
-            db.createObjectStore(
-              "items",
-              {
-                keyPath: "id",
-                autoIncrement: true,
-              }
-            );
+        store.createIndex("category", "category");
+      }
+    };
 
-          store.createIndex(
-            "category",
-            "category"
-          );
-        }
-      };
-
-      request.onsuccess = () =>
-        resolve(request.result);
-
-      request.onerror = () =>
-        reject(request.error);
-    }
-  );
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
 
 function getDB(): IDBDatabase {
   if (!database) {
-    throw new Error(
-      "DB not initialized"
-    );
+    throw new Error("DB not initialized");
   }
 
   return database;
 }
 
-function requestResult<T>(
-  request: IDBRequest<T>
-): Promise<T> {
-  return new Promise(
-    (resolve, reject) => {
-      request.onsuccess = () =>
-        resolve(request.result);
-
-      request.onerror = () =>
-        reject(request.error);
-    }
-  );
+function requestResult<T>(request: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
 
-function txDone(
-  tx: IDBTransaction
-): Promise<void> {
-  return new Promise(
-    (resolve, reject) => {
-      tx.oncomplete = () =>
-        resolve();
-
-      tx.onerror = () =>
-        reject(tx.error);
-
-      tx.onabort = () =>
-        reject(tx.error);
-    }
-  );
+function txDone(tx: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
 }
-
 
 /* =========================
    일정
    ========================= */
 
-export async function querySchedules(): Promise<
-  Schedule[]
-> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readonly"
+export async function querySchedules(): Promise<Schedule[]> {
+  const tx = getDB().transaction("schedules", "readonly");
+
+  const rows = await requestResult(
+    tx.objectStore("schedules").getAll()
   );
 
-  const rows =
-    await requestResult(
-      tx.objectStore(
-        "schedules"
-      ).getAll()
-    );
-
   return rows
-    .filter(
-      (x) => x.completed === 0
-    )
+    .filter((x) => x.completed === 0)
     .sort((a, b) =>
-      a.due_date.localeCompare(
-        b.due_date
-      )
+      a.due_date.localeCompare(b.due_date)
     );
 }
 
@@ -173,22 +108,16 @@ export async function addSchedule(
   category = "일정",
   itemName = ""
 ): Promise<void> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readwrite"
-  );
+  const tx = getDB().transaction("schedules", "readwrite");
 
-  tx.objectStore(
-    "schedules"
-  ).add({
+  tx.objectStore("schedules").add({
     title,
     due_date: dueDate,
     priority,
     category,
     item_name: itemName,
     completed: 0,
-    created_at:
-      new Date().toISOString(),
+    created_at: new Date().toISOString(),
   });
 
   await txDone(tx);
@@ -197,20 +126,11 @@ export async function addSchedule(
 export async function completeSchedule(
   id: number
 ): Promise<void> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readwrite"
-  );
+  const tx = getDB().transaction("schedules", "readwrite");
 
-  const store =
-    tx.objectStore(
-      "schedules"
-    );
+  const store = tx.objectStore("schedules");
 
-  const row =
-    await requestResult(
-      store.get(id)
-    );
+  const row = await requestResult(store.get(id));
 
   if (row) {
     row.completed = 1;
@@ -220,21 +140,13 @@ export async function completeSchedule(
   await txDone(tx);
 }
 
-export async function getAllSchedules(): Promise<
-  Schedule[]
-> {
-  const tx = getDB().transaction(
-    "schedules",
-    "readonly"
-  );
+export async function getAllSchedules(): Promise<Schedule[]> {
+  const tx = getDB().transaction("schedules", "readonly");
 
   return requestResult(
-    tx.objectStore(
-      "schedules"
-    ).getAll()
+    tx.objectStore("schedules").getAll()
   );
 }
-
 
 /* =========================
    가전 / 관리항목
@@ -249,23 +161,17 @@ export async function addItem(
   purchasePrice = 0,
   memo = ""
 ): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
-  );
+  const tx = getDB().transaction("items", "readwrite");
 
   tx.objectStore("items").add({
     category,
     name,
     manufacturer,
     model,
-    purchase_date:
-      purchaseDate,
-    purchase_price:
-      purchasePrice,
+    purchase_date: purchaseDate,
+    purchase_price: purchasePrice,
     memo,
-    created_at:
-      new Date().toISOString(),
+    created_at: new Date().toISOString(),
   });
 
   await txDone(tx);
@@ -274,75 +180,48 @@ export async function addItem(
 export async function getItemsByCategory(
   category: string
 ): Promise<Item[]> {
-  const tx = getDB().transaction(
-    "items",
-    "readonly"
+  const tx = getDB().transaction("items", "readonly");
+
+  const rows = await requestResult(
+    tx
+      .objectStore("items")
+      .index("category")
+      .getAll(category)
   );
 
-  const rows =
-    await requestResult(
-      tx
-        .objectStore("items")
-        .index("category")
-        .getAll(category)
-    );
+  return rows.sort((a, b) => {
+    const dateA = a.purchase_date || "";
+    const dateB = b.purchase_date || "";
 
-  return rows.sort(
-    (a, b) => {
-      const dateA =
-        a.purchase_date || "";
-
-      const dateB =
-        b.purchase_date || "";
-
-      return dateB.localeCompare(
-        dateA
-      );
-    }
-  );
+    return dateB.localeCompare(dateA);
+  });
 }
 
-export async function getAllItems(): Promise<
-  Item[]
-> {
-  const tx = getDB().transaction(
-    "items",
-    "readonly"
-  );
+export async function getAllItems(): Promise<Item[]> {
+  const tx = getDB().transaction("items", "readonly");
 
   return requestResult(
-    tx.objectStore(
-      "items"
-    ).getAll()
+    tx.objectStore("items").getAll()
   );
 }
 
 export async function deleteItem(
   id: number
 ): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
-  );
+  const tx = getDB().transaction("items", "readwrite");
 
-  tx.objectStore(
-    "items"
-  ).delete(id);
+  tx.objectStore("items").delete(id);
 
   await txDone(tx);
 }
 
-
 /*
  * 가전 전체 정보 수정
  *
- * 기존 코드에서는
- * name / model / purchasePrice만
- * 필수로 넘겨받고 있었습니다.
- *
- * 이제 제조사 / 구매일 / 메모까지
- * 정상적으로 수정합니다.
+ * name / model / purchasePrice뿐만 아니라
+ * 제조사 / 구매일 / 메모까지 수정합니다.
  */
+
 export async function updateItem(
   id: number,
   name: string,
@@ -352,28 +231,18 @@ export async function updateItem(
   purchaseDate = "",
   memo = ""
 ): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
-  );
+  const tx = getDB().transaction("items", "readwrite");
 
-  const store =
-    tx.objectStore("items");
+  const store = tx.objectStore("items");
 
-  const row =
-    await requestResult(
-      store.get(id)
-    );
+  const row = await requestResult(store.get(id));
 
   if (row) {
     row.name = name;
     row.model = model;
-    row.purchase_price =
-      purchasePrice;
-    row.manufacturer =
-      manufacturer;
-    row.purchase_date =
-      purchaseDate;
+    row.purchase_price = purchasePrice;
+    row.manufacturer = manufacturer;
+    row.purchase_date = purchaseDate;
     row.memo = memo;
 
     store.put(row);
@@ -385,25 +254,17 @@ export async function updateItem(
 export async function getItemCounts(): Promise<
   Record<string, number>
 > {
-  const rows =
-    await getAllItems();
+  const rows = await getAllItems();
 
-  const result: Record<
-    string,
-    number
-  > = {};
+  const result: Record<string, number> = {};
 
-  rows.forEach(
-    (x: Item) => {
-      result[x.category] =
-        (result[x.category] || 0) +
-        1;
-    }
-  );
+  rows.forEach((x: Item) => {
+    result[x.category] =
+      (result[x.category] || 0) + 1;
+  });
 
   return result;
 }
-
 
 /* =========================
    백업
@@ -412,10 +273,8 @@ export async function getItemCounts(): Promise<
 export async function exportJson(): Promise<string> {
   return JSON.stringify(
     {
-      schedules:
-        await getAllSchedules(),
-      items:
-        await getAllItems(),
+      schedules: await getAllSchedules(),
+      items: await getAllItems(),
     },
     null,
     2
@@ -423,8 +282,7 @@ export async function exportJson(): Promise<string> {
 }
 
 export async function exportCsvSchedules(): Promise<string> {
-  const rows =
-    await getAllSchedules();
+  const rows = await getAllSchedules();
 
   const header =
     "id,title,due_date,priority";
