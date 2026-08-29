@@ -470,7 +470,17 @@ useEffect(() => {
               >
                 닫기
               </button>
-
+              <button
+                onClick={() => {
+                  setTitle(selectedAppliance.name || "");
+              
+                  setModal(true);
+              
+                  setSelectedAppliance(null);
+                }}
+              >
+                수정
+              </button>
               <button
                 className="primary"
                 onClick={() =>
