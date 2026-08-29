@@ -182,6 +182,18 @@ useEffect(() => {
 
   await refresh();
   }
+
+  async function handleDeleteAppliance(id: number) {
+    if (!window.confirm("이 가전을 삭제하시겠습니까?")) {
+      return;
+    }
+  
+    await deleteItem(id);
+  
+    setSelectedAppliance(null);
+  
+    await refresh();
+  }
   async function save() {
     if (!title.trim() || !date) return;
 
@@ -435,6 +447,18 @@ useEffect(() => {
               >
                 닫기
               </button>
+
+              <button
+                className="primary"
+                onClick={() =>
+                  handleDeleteAppliance(
+                    selectedAppliance.id
+                  )
+                }
+              >
+                삭제
+              </button>
+              
             </div>
           </div>
         </div>
