@@ -10,6 +10,7 @@ import {
   addItem,
   getItemsByCategory,
   deleteItem,
+  updateItem,
   type Schedule,
   type Item,
 } from "./db";
@@ -198,28 +199,42 @@ useEffect(() => {
       </div>
     );
   }
-  async function saveAppliance() {
+
+async function saveAppliance() {
   if (!applianceName.trim()) return;
 
-  await addItem(
-    "가전",
-    applianceName,
-    "",
-    applianceModel,
-    "",
-    Number(appliancePrice) || 0,
-    ""
-  );
+  const price =
+    Number(appliancePrice) || 0;
+
+  if (editingId !== null) {
+    await updateItem(
+      editingId,
+      applianceName,
+      applianceModel,
+      price
+    );
+  } else {
+    await addItem(
+      "가전",
+      applianceName,
+      "",
+      applianceModel,
+      "",
+      price,
+      ""
+    );
+  }
 
   setApplianceName("");
   setApplianceModel("");
   setAppliancePrice("");
+  setEditingId(null);
 
   setModal(false);
 
   await refresh();
-  }
-
+}
+  
   async function save() {
     if (!title.trim() || !date) return;
 
