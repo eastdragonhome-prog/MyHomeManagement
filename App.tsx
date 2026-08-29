@@ -14,6 +14,7 @@ import {
   type Schedule,
   type Item,
 } from "./db";
+
 const MENU = [
   ["home", "⌂", "홈"],
   ["schedule", "▣", "일정"],
@@ -73,52 +74,62 @@ export default function App() {
   const [counts, setCounts] =
     useState<Record<string, number>>({});
 
-  const [modal, setModal] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [priority, setPriority] = useState(2);
   const [appliances, setAppliances] =
-  useState<Item[]>([]);
+    useState<Item[]>([]);
+
+  const [modal, setModal] =
+    useState(false);
 
   const [selectedAppliance, setSelectedAppliance] =
-  useState<Item | null>(null);
+    useState<Item | null>(null);
 
   const [editingId, setEditingId] =
-  useState<number | null>(null);
-  
+    useState<number | null>(null);
+
+  /* 일정 입력 */
+  const [title, setTitle] =
+    useState("");
+
+  const [date, setDate] =
+    useState("");
+
+  const [priority, setPriority] =
+    useState(2);
+
+  /* 가전 입력 */
   const [applianceName, setApplianceName] =
-  useState("");
+    useState("");
 
-const [applianceModel, setApplianceModel] =
-  useState("");
+  const [applianceManufacturer, setApplianceManufacturer] =
+    useState("");
 
-const [appliancePrice, setAppliancePrice] =
-  useState("");
-  
-async function refresh() {
-  const scheduleData =
-    await querySchedules();
+  const [applianceModel, setApplianceModel] =
+    useState("");
 
-  const countData =
-    await getItemCounts();
+  const [appliancePurchaseDate, setAppliancePurchaseDate] =
+    useState("");
 
-  const applianceData =
-    await getItemsByCategory("가전");
+  const [appliancePrice, setAppliancePrice] =
+    useState("");
 
-  setSchedules(scheduleData);
-  setCounts(countData);
-  setAppliances(applianceData);
-}
-async function handleDeleteAppliance(id: number) {
-  if (!window.confirm("이 가전을 삭제하시겠습니까?")) {
-    return;
+  const [applianceMemo, setApplianceMemo] =
+    useState("");
+
+  async function refresh() {
+    const scheduleData =
+      await querySchedules();
+
+    const countData =
+      await getItemCounts();
+
+    const applianceData =
+      await getItemsByCategory("가전");
+
+    setSchedules(scheduleData);
+    setCounts(countData);
+    setAppliances(applianceData);
   }
 
-  await deleteItem(id);
-  setSelectedAppliance(null);
-  await refresh();
-}
   useEffect(() => {
     initDB()
       .then(async () => {
@@ -126,51 +137,13 @@ async function handleDeleteAppliance(id: number) {
         await refresh();
       })
       .catch((error) => {
-        console.error("DB 초기화 실패:", error);
+        console.error(
+          "DB 초기화 실패:",
+          error
+        );
       });
   }, []);
-useEffect(() => {
-  const selectAppliance = (event: Event) => {
-    const customEvent = event as CustomEvent<Item>;
-    setSelectedAppliance(customEvent.detail);
-  };
 
-  window.addEventListener(
-    "select-appliance",
-    selectAppliance
-  );
-
-  return () => {
-    window.removeEventListener(
-      "select-appliance",
-      selectAppliance
-    );
-  };
-}, []);
-
-useEffect(() => {
-  const deleteAppliance = (event: Event) => {
-    const customEvent =
-      event as CustomEvent<number>;
-
-    handleDeleteAppliance(
-      customEvent.detail
-    );
-  };
-
-  window.addEventListener(
-    "delete-appliance",
-    deleteAppliance
-  );
-
-  return () => {
-    window.removeEventListener(
-      "delete-appliance",
-      deleteAppliance
-    );
-  };
-}, []);
-  
   const groups = useMemo(
     () => ({
       urgent: schedules.filter(
@@ -192,51 +165,106 @@ useEffect(() => {
     [schedules]
   );
 
-  if (!ready) {
-    return (
-      <div className="loading">
-        우리집 통합관리 준비 중...
-      </div>
-    );
+  function resetApplianceForm() {
+    setApplianceName("");
+    setApplianceManufacturer("");
+    setApplianceModel("");
+    setAppliancePurchaseDate("");
+    setAppliancePrice("");
+    setApplianceMemo("");
+    setEditingId(null);
   }
 
-async function saveAppliance() {
-  if (!applianceName.trim()) return;
+  function openAddModal() {
+    if (menu !== "appliance") {
+      setTitle("");
+      setDate("");
+      setPriority(2);
+    }
 
-  const price =
-    Number(appliancePrice) || 0;
-
-  if (editingId !== null) {
-    await updateItem(
-      editingId,
-      applianceName,
-      applianceModel,
-      price
-    );
-  } else {
-    await addItem(
-      "가전",
-      applianceName,
-      "",
-      applianceModel,
-      "",
-      price,
-      ""
-    );
+    resetApplianceForm();
+    setModal(true);
   }
 
-  setApplianceName("");
-  setApplianceModel("");
-  setAppliancePrice("");
-  setEditingId(null);
+  function openApplianceEdit(
+    appliance: Item
+  ) {
+    setEditingId(appliance.id);
 
-  setModal(false);
+    setApplianceName(
+      appliance.name || ""
+    );
 
-  await refresh();
-}
-  
-  async function save() {
-    if (!title.trim() || !date) return;
+    setApplianceManufacturer(
+      appliance.manufacturer || ""
+    );
+
+    setApplianceModel(
+      appliance.model || ""
+    );
+
+    setAppliancePurchaseDate(
+      appliance.purchase_date || ""
+    );
+
+    setAppliancePrice(
+      appliance.purchase_price
+        ? String(
+            appliance.purchase_price
+          )
+        : ""
+    );
+
+    setApplianceMemo(
+      appliance.memo || ""
+    );
+
+    setSelectedAppliance(null);
+    setMenu("appliance");
+    setModal(true);
+  }
+
+  async function saveAppliance() {
+    if (!applianceName.trim()) {
+      return;
+    }
+
+    const price =
+      Number(appliancePrice) || 0;
+
+    if (editingId !== null) {
+      /*
+       * 현재 db.ts의 updateItem은
+       * 제품명 / 모델명 / 구매금액만 수정합니다.
+       */
+      await updateItem(
+        editingId,
+        applianceName.trim(),
+        applianceModel.trim(),
+        price
+      );
+    } else {
+      await addItem(
+        "가전",
+        applianceName.trim(),
+        applianceManufacturer.trim(),
+        applianceModel.trim(),
+        appliancePurchaseDate,
+        price,
+        applianceMemo.trim()
+      );
+    }
+
+    resetApplianceForm();
+    setModal(false);
+
+    await refresh();
+  }
+
+  async function saveSchedule() {
+    if (!title.trim() || !date) {
+      return;
+    }
 
     await addSchedule(
       title.trim(),
@@ -252,8 +280,27 @@ async function saveAppliance() {
     await refresh();
   }
 
+  async function handleDeleteAppliance(
+    id: number
+  ) {
+    if (
+      !window.confirm(
+        "이 가전을 삭제하시겠습니까?"
+      )
+    ) {
+      return;
+    }
+
+    await deleteItem(id);
+
+    setSelectedAppliance(null);
+
+    await refresh();
+  }
+
   async function handleExportJson() {
-    const data = await exportJson();
+    const data =
+      await exportJson();
 
     download(
       "우리집_통합관리.json",
@@ -263,7 +310,8 @@ async function saveAppliance() {
   }
 
   async function handleExportCsv() {
-    const data = await exportCsvSchedules();
+    const data =
+      await exportCsvSchedules();
 
     download(
       "우리집_일정.csv",
@@ -272,14 +320,26 @@ async function saveAppliance() {
     );
   }
 
-  async function handleComplete(id: number) {
+  async function handleComplete(
+    id: number
+  ) {
     await completeSchedule(id);
     await refresh();
   }
 
+  if (!ready) {
+    return (
+      <div className="loading">
+        우리집 통합관리 준비 중...
+      </div>
+    );
+  }
+
   return (
     <div className="shell">
+
       <aside className="sidebar">
+
         <div className="brand">
           <b>⌂</b>
 
@@ -312,9 +372,7 @@ async function saveAppliance() {
 
         <button
           className="quick"
-          onClick={() =>
-            setModal(true)
-          }
+          onClick={openAddModal}
         >
           ＋ 빠른 등록
         </button>
@@ -322,10 +380,13 @@ async function saveAppliance() {
         <small className="offline">
           ● 오프라인 기본 기능 사용 가능
         </small>
+
       </aside>
 
       <main className="main">
+
         <header className="header">
+
           <div>
             <small>
               우리집 통합관리
@@ -334,13 +395,15 @@ async function saveAppliance() {
             <h1>
               {
                 MENU.find(
-                  (x) => x[0] === menu
+                  (x) =>
+                    x[0] === menu
                 )?.[2]
               }
             </h1>
           </div>
 
           <div className="actions">
+
             <button
               onClick={
                 handleExportJson
@@ -359,13 +422,13 @@ async function saveAppliance() {
 
             <button
               className="primary"
-              onClick={() =>
-                setModal(true)
-              }
+              onClick={openAddModal}
             >
               ＋ 등록
             </button>
+
           </div>
+
         </header>
 
         {menu === "home" ? (
@@ -377,16 +440,24 @@ async function saveAppliance() {
               handleComplete
             }
           />
-      ) : menu === "schedule" ? (
-  <SchedulePage
-    schedules={schedules}
-    onComplete={handleComplete}
-  />
-) : menu === "appliance" ? (
-  <AppliancePage
-    items={appliances}
-  />
-) : (
+        ) : menu === "schedule" ? (
+          <SchedulePage
+            schedules={schedules}
+            onComplete={
+              handleComplete
+            }
+          />
+        ) : menu === "appliance" ? (
+          <AppliancePage
+            items={appliances}
+            onSelect={
+              setSelectedAppliance
+            }
+            onDelete={
+              handleDeleteAppliance
+            }
+          />
+        ) : (
           <CategoryPage
             label={
               CATEGORY_MAP[menu] ??
@@ -398,140 +469,156 @@ async function saveAppliance() {
                   ""
               ] ?? 0
             }
-            onAdd={() =>
-              setModal(true)
-            }
+            onAdd={openAddModal}
           />
         )}
+
       </main>
-              
+
+      {/* 가전 상세 모달 */}
       {selectedAppliance && (
-<div
-  className="modal-bg"
-  onClick={() => setSelectedAppliance(null)}
->
-  <div
-    className="modal"
-    onClick={(e) => e.stopPropagation()}
-  >
-    <div className="modal-title">
-      <div>
-        <small>APPLIANCE DETAIL</small>
-        <h2>{selectedAppliance.name}</h2>
-      </div>
+        <div
+          className="modal-bg"
+          onClick={() =>
+            setSelectedAppliance(null)
+          }
+        >
 
-      <button
-        onClick={() =>
-          setSelectedAppliance(null)
-        }
-      >
-        ×
-      </button>
-    </div>
+          <div
+            className="modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
 
-    <label>
-      제조사
-      <input
-        value={
-          selectedAppliance.manufacturer || ""
-        }
-        readOnly
-      />
-    </label>
+            <div className="modal-title">
 
-    <label>
-      모델명
-      <input
-        value={
-          selectedAppliance.model || ""
-        }
-        readOnly
-      />
-    </label>
+              <div>
+                <small>
+                  APPLIANCE DETAIL
+                </small>
 
-    <label>
-      구매일
-      <input
-        value={
-          selectedAppliance.purchase_date || ""
-        }
-        readOnly
-      />
-    </label>
+                <h2>
+                  {
+                    selectedAppliance.name
+                  }
+                </h2>
+              </div>
 
-    <label>
-      구매금액
-      <input
-        value={
-          selectedAppliance.purchase_price
-            ? `${selectedAppliance.purchase_price.toLocaleString()}원`
-            : ""
-        }
-        readOnly
-      />
-    </label>
+              <button
+                onClick={() =>
+                  setSelectedAppliance(
+                    null
+                  )
+                }
+              >
+                ×
+              </button>
 
-    <label>
-      메모
-      <input
-        value={
-          selectedAppliance.memo || ""
-        }
-        readOnly
-      />
-    </label>
+            </div>
 
-    <div className="modal-actions">
-      <button
-        onClick={() => {
-          setEditingId(
-            selectedAppliance.id
-          );
+            <label>
+              제조사
 
-          setMenu("appliance");
+              <input
+                value={
+                  selectedAppliance.manufacturer ||
+                  ""
+                }
+                readOnly
+              />
+            </label>
 
-          setApplianceName(
-            selectedAppliance.name || ""
-          );
+            <label>
+              모델명
 
-          setApplianceModel(
-            selectedAppliance.model || ""
-          );
+              <input
+                value={
+                  selectedAppliance.model ||
+                  ""
+                }
+                readOnly
+              />
+            </label>
 
-          setAppliancePrice(
-            String(
-              selectedAppliance.purchase_price || ""
-            )
-          );
+            <label>
+              구매일
 
-          setSelectedAppliance(null);
-          setModal(true);
-        }}
-      >
-        수정
-      </button>
+              <input
+                value={
+                  selectedAppliance.purchase_date ||
+                  ""
+                }
+                readOnly
+              />
+            </label>
 
-      <button
-        className="primary"
-        onClick={() =>
-          handleDeleteAppliance(
-            selectedAppliance.id
-          )
-        }
-      >
-        삭제
-      </button>
+            <label>
+              구매금액
 
-      <button
-        onClick={() =>
-          setSelectedAppliance(null)
-        }
-      >
-        닫기
-      </button>
-    </div>
-  </div>
+              <input
+                value={
+                  selectedAppliance.purchase_price
+                    ? `${selectedAppliance.purchase_price.toLocaleString()}원`
+                    : ""
+                }
+                readOnly
+              />
+            </label>
 
+            <label>
+              메모
+
+              <input
+                value={
+                  selectedAppliance.memo ||
+                  ""
+                }
+                readOnly
+              />
+            </label>
+
+            <div className="modal-actions">
+
+              <button
+                onClick={() =>
+                  openApplianceEdit(
+                    selectedAppliance
+                  )
+                }
+              >
+                수정
+              </button>
+
+              <button
+                className="primary"
+                onClick={() =>
+                  handleDeleteAppliance(
+                    selectedAppliance.id
+                  )
+                }
+              >
+                삭제
+              </button>
+
+              <button
+                onClick={() =>
+                  setSelectedAppliance(
+                    null
+                  )
+                }
+              >
+                닫기
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* 등록 / 수정 모달 */}
       {modal && (
         <div
           className="modal-bg"
@@ -539,25 +626,32 @@ async function saveAppliance() {
             setModal(false)
           }
         >
+
           <div
             className="modal"
             onMouseDown={(e) =>
               e.stopPropagation()
             }
           >
+
             <div className="modal-title">
+
               <div>
                 <small>
-                  QUICK ADD
+                  {menu === "appliance"
+                    ? editingId !== null
+                      ? "EDIT APPLIANCE"
+                      : "QUICK ADD"
+                    : "QUICK ADD"}
                 </small>
 
-        
-<h2>
-  {menu === "appliance"
-    ? "가전 등록"
-    : "일정 등록"}
-</h2>
-                
+                <h2>
+                  {menu === "appliance"
+                    ? editingId !== null
+                      ? "가전 수정"
+                      : "가전 등록"
+                    : "일정 등록"}
+                </h2>
               </div>
 
               <button
@@ -567,97 +661,163 @@ async function saveAppliance() {
               >
                 ×
               </button>
+
             </div>
 
             {menu === "appliance" ? (
-  <>
-    <label>
-      제품명
-      <input
-        value={applianceName}
-        onChange={(e) =>
-          setApplianceName(
-            e.target.value
-          )
-        }
-      />
-    </label>
+              <>
+                <label>
+                  제품명
 
-    <label>
-      모델명
-      <input
-        value={applianceModel}
-        onChange={(e) =>
-          setApplianceModel(
-            e.target.value
-          )
-        }
-      />
-    </label>
+                  <input
+                    value={
+                      applianceName
+                    }
+                    onChange={(e) =>
+                      setApplianceName(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
 
-    <label>
-      구매금액
-      <input
-        type="number"
-        value={appliancePrice}
-        onChange={(e) =>
-          setAppliancePrice(
-            e.target.value
-          )
-        }
-      />
-    </label>
-  </>
-) : (
-  <>
-    <label>
-      할 일
-      <input
-        value={title}
-        onChange={(e) =>
-          setTitle(e.target.value)
-        }
-      />
-    </label>
+                <label>
+                  제조사
 
-    <label>
-      날짜
-      <input
-        type="date"
-        value={date}
-        onChange={(e) =>
-          setDate(e.target.value)
-        }
-      />
-    </label>
+                  <input
+                    value={
+                      applianceManufacturer
+                    }
+                    onChange={(e) =>
+                      setApplianceManufacturer(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
 
-    <label>
-      우선순위
-      <select
-        value={priority}
-        onChange={(e) =>
-          setPriority(
-            Number(
-              e.target.value
-            )
-          )
-        }
-      >
-        <option value={1}>
-          긴급
-        </option>
-        <option value={2}>
-          보통
-        </option>
-        <option value={3}>
-          낮음
-        </option>
-      </select>
-    </label>
-  </>
-)}
+                <label>
+                  모델명
+
+                  <input
+                    value={
+                      applianceModel
+                    }
+                    onChange={(e) =>
+                      setApplianceModel(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  구매일
+
+                  <input
+                    type="date"
+                    value={
+                      appliancePurchaseDate
+                    }
+                    onChange={(e) =>
+                      setAppliancePurchaseDate(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  구매금액
+
+                  <input
+                    type="number"
+                    value={
+                      appliancePrice
+                    }
+                    onChange={(e) =>
+                      setAppliancePrice(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  메모
+
+                  <input
+                    value={
+                      applianceMemo
+                    }
+                    onChange={(e) =>
+                      setApplianceMemo(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <label>
+                  할 일
+
+                  <input
+                    value={title}
+                    onChange={(e) =>
+                      setTitle(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  날짜
+
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) =>
+                      setDate(
+                        e.target.value
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  우선순위
+
+                  <select
+                    value={priority}
+                    onChange={(e) =>
+                      setPriority(
+                        Number(
+                          e.target.value
+                        )
+                      )
+                    }
+                  >
+                    <option value={1}>
+                      긴급
+                    </option>
+
+                    <option value={2}>
+                      보통
+                    </option>
+
+                    <option value={3}>
+                      낮음
+                    </option>
+                  </select>
+                </label>
+              </>
+            )}
 
             <div className="modal-actions">
+
               <button
                 onClick={() =>
                   setModal(false)
@@ -668,22 +828,30 @@ async function saveAppliance() {
 
               <button
                 className="primary"
-                
                 onClick={() =>
-  menu === "appliance"
-    ? saveAppliance()
-    : save()
-}
+                  menu === "appliance"
+                    ? saveAppliance()
+                    : saveSchedule()
+                }
               >
                 저장
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
+
     </div>
   );
 }
+
+
+/* =========================
+   Dashboard
+========================= */
 
 function Dashboard({
   groups,
@@ -705,19 +873,21 @@ function Dashboard({
     id: number
   ) => void;
 }) {
-const categories = [
-  "가전",
-  "자동차",
-  "보험",
-  "집관리",
-  "가족",
-  "증여",
-  "문서",
-];
+  const categories = [
+    "가전",
+    "자동차",
+    "보험",
+    "집관리",
+    "가족",
+    "증여",
+    "문서",
+  ];
 
   return (
     <div>
+
       <section className="hero">
+
         <div>
           <small>TODAY</small>
 
@@ -729,15 +899,19 @@ const categories = [
         </div>
 
         <div className="hero-count">
-          <b>{schedules.length}</b>
+          <b>
+            {schedules.length}
+          </b>
 
           <span>
             개의 예정 일정
           </span>
         </div>
+
       </section>
 
       <section className="cards">
+
         <Card
           title="오늘/기한 초과"
           value={
@@ -764,10 +938,13 @@ const categories = [
           desc="미리 준비할 일정"
           cls="normal"
         />
+
       </section>
 
       <section className="section">
+
         <div className="section-head">
+
           <div>
             <h2>
               다가오는 일정
@@ -781,9 +958,11 @@ const categories = [
           <span>
             {schedules.length}건
           </span>
+
         </div>
 
         <div className="list">
+
           {schedules
             .slice(0, 10)
             .map((s) => (
@@ -799,11 +978,15 @@ const categories = [
           {!schedules.length && (
             <Empty />
           )}
+
         </div>
+
       </section>
 
       <section className="section">
+
         <div className="section-head">
+
           <div>
             <h2>
               관리 현황
@@ -813,9 +996,11 @@ const categories = [
               우리집 주요 관리 항목
             </p>
           </div>
+
         </div>
 
         <div className="category-grid">
+
           {categories.map(
             (category) => (
               <div
@@ -834,11 +1019,19 @@ const categories = [
               </div>
             )
           )}
+
         </div>
+
       </section>
+
     </div>
   );
 }
+
+
+/* =========================
+   Card
+========================= */
 
 function Card({
   title,
@@ -855,7 +1048,9 @@ function Card({
     <div
       className={`card ${cls}`}
     >
-      <span>{title}</span>
+      <span>
+        {title}
+      </span>
 
       <b>
         {value}
@@ -869,11 +1064,17 @@ function Card({
   );
 }
 
+
+/* =========================
+   Schedule Row
+========================= */
+
 function Row({
   item,
   onComplete,
 }: {
   item: Schedule;
+
   onComplete: (
     id: number
   ) => void;
@@ -891,6 +1092,7 @@ function Row({
 
   return (
     <div className="row">
+
       <strong
         className={
           n <= 0
@@ -904,7 +1106,9 @@ function Row({
       </strong>
 
       <div>
-        <b>{item.title}</b>
+        <b>
+          {item.title}
+        </b>
 
         <small>
           {item.category}
@@ -922,22 +1126,31 @@ function Row({
       >
         완료
       </button>
+
     </div>
   );
 }
+
+
+/* =========================
+   Schedule Page
+========================= */
 
 function SchedulePage({
   schedules,
   onComplete,
 }: {
   schedules: Schedule[];
+
   onComplete: (
     id: number
   ) => void;
 }) {
   return (
     <section className="section">
+
       <div className="section-head">
+
         <div>
           <h2>
             전체 일정
@@ -951,9 +1164,11 @@ function SchedulePage({
         <span>
           {schedules.length}건
         </span>
+
       </div>
 
       <div className="list">
+
         {schedules.map(
           (s) => (
             <Row
@@ -969,10 +1184,17 @@ function SchedulePage({
         {!schedules.length && (
           <Empty />
         )}
+
       </div>
+
     </section>
   );
 }
+
+
+/* =========================
+   Category Page
+========================= */
 
 function CategoryPage({
   label,
@@ -985,13 +1207,17 @@ function CategoryPage({
 }) {
   return (
     <div>
+
       <section className="category-hero">
+
         <div className="big-icon">
           □
         </div>
 
         <div>
-          <h2>{label}</h2>
+          <h2>
+            {label}
+          </h2>
 
           <p>
             관리 대상과 기록, 일정,
@@ -1005,10 +1231,14 @@ function CategoryPage({
         >
           ＋ 등록
         </button>
+
       </section>
 
       <div className="empty-panel">
-        <b>{count}</b>
+
+        <b>
+          {count}
+        </b>
 
         <h2>
           {count
@@ -1027,33 +1257,62 @@ function CategoryPage({
         >
           등록 시작
         </button>
+
       </div>
+
     </div>
   );
 }
 
+
+/* =========================
+   Empty
+========================= */
+
 function Empty() {
   return (
     <div className="empty">
+
       <b>＋</b>
 
       <p>
         등록된 일정이 없습니다.
       </p>
+
     </div>
   );
-          }
+}
+
+
+/* =========================
+   Appliance Page
+========================= */
 
 function AppliancePage({
   items,
+  onSelect,
+  onDelete,
 }: {
   items: Item[];
+
+  onSelect: (
+    item: Item
+  ) => void;
+
+  onDelete: (
+    id: number
+  ) => void;
 }) {
   return (
     <section className="section">
+
       <div className="section-head">
+
         <div>
-          <h2>가전관리</h2>
+          <h2>
+            가전관리
+          </h2>
+
           <p>
             등록된 가전 목록
           </p>
@@ -1062,54 +1321,58 @@ function AppliancePage({
         <span>
           {items.length}건
         </span>
+
       </div>
 
       <div className="list">
-        {items.map((x) => (
+
+        {items.map(
+          (x) => (
             <div
               key={x.id}
               className="row"
               onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent("select-appliance", {
-                    detail: x,
-                  })
-                )
+                onSelect(x)
               }
-              style={{ cursor: "pointer" }}
+              style={{
+                cursor: "pointer",
+              }}
             >
-            <div>
-              <b>{x.name}</b>
 
-              <small>
-                {x.model}
-              </small>
+              <div>
+                <b>
+                  {x.name}
+                </b>
+
+                <small>
+                  {x.model}
+                </small>
+              </div>
+
+              <time>
+                {x.purchase_date}
+              </time>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  onDelete(x.id);
+                }}
+              >
+                삭제
+              </button>
+
             </div>
-
-            <time>
-              {x.purchase_date}
-            </time>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-          
-              window.dispatchEvent(
-                new CustomEvent("delete-appliance", {
-                  detail: x.id,
-                })
-              );
-            }}
-          >
-            삭제
-          </button>
-          </div>
-        ))}
+          )
+        )}
 
         {!items.length && (
           <Empty />
         )}
+
       </div>
+
     </section>
   );
 }
