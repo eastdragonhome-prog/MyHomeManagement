@@ -265,6 +265,16 @@ export async function addItem(
   await txDone(tx);
 }
 
+export async function deleteItem(id: number) {
+  const db = await getDB();
+
+  await db.run(
+    "DELETE FROM items WHERE id = ?",
+    [id]
+  );
+
+  await saveDB(db);
+}
 export async function getItemsByCategory(
   category: string
 ): Promise<Item[]> {
