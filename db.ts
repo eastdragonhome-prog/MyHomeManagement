@@ -295,47 +295,44 @@ export async function deleteItem(
 
   await txDone(tx);
 }
+
 export async function updateItem(
   id: number,
   name: string,
   model = "",
-  purchasePrice = 0
+  purchasePrice = 0,
+  manufacturer?: string,
+  purchaseDate?: string,
+  memo?: string
 ): Promise<void> {
-  const tx = getDB().transaction(
-    "items",
-    "readwrite"
+  const tx = getDB().transaction("items", "readwrite");
+  const store = tx.objectStore("items");
+
+  const row = await requestResult(
+    store.get(id)
   );
-
-  const store =
-    tx.objectStore("items");
-
-  const row =
-    await requestResult(
-      store.get(id)
-    );
 
   if (row) {
     row.name = name;
     row.model = model;
-    row.purchase_price =
-      purchasePrice;
+    row.purchase_price = purchasePrice;
+
+    if (manufacturer !== undefined) {
+      row.manufacturer = manufacturer;
+    }
+
+    if (purchaseDate !== undefined) {
+      row.purchase_date = purchaseDate;
+    }
+
+    if (memo !== undefined) {
+      row.memo = memo;
+    }
 
     store.put(row);
   }
 
   await txDone(tx);
-}
-export async function getAllItems(): Promise<
-  Item[]
-> {
-  const tx = getDB().transaction(
-    "items",
-    "readonly"
-  );
-
-  return requestResult(
-    tx.objectStore("items").getAll()
-  );
 }
 
 export async function getItemCounts(): Promise<
