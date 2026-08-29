@@ -82,6 +82,9 @@ export default function App() {
 
   const [selectedAppliance, setSelectedAppliance] =
   useState<Item | null>(null);
+
+  const [editingId, setEditingId] =
+  useState<number | null>(null);
   
   const [applianceName, setApplianceName] =
   useState("");
@@ -472,10 +475,26 @@ useEffect(() => {
               </button>
               <button
                 onClick={() => {
+                  setEditingId(selectedAppliance.id);
+              
                   setTitle(selectedAppliance.name || "");
+                  setManufacturer(
+                    selectedAppliance.manufacturer || ""
+                  );
+                  setModel(
+                    selectedAppliance.model || ""
+                  );
+                  setPurchaseDate(
+                    selectedAppliance.purchase_date || ""
+                  );
+                  setPurchasePrice(
+                    selectedAppliance.purchase_price || 0
+                  );
+                  setMemo(
+                    selectedAppliance.memo || ""
+                  );
               
                   setModal(true);
-              
                   setSelectedAppliance(null);
                 }}
               >
