@@ -711,22 +711,20 @@ export default function App() {
                   />
                 </label>
 
-                <label>
-                  구매일
+<label>
+  구매일
+</label>
 
-                  <input
-                    className="appliance-date-input"
-                    type="date"
-                    value={
-                      appliancePurchaseDate
-                    }
-                    onChange={(e) =>
-                      setAppliancePurchaseDate(
-                        e.target.value
-                      )
-                    }
-                  />
-                </label>
+<div className="input-row">
+  <input
+    className="appliance-date-input"
+    type="date"
+    value={appliancePurchaseDate}
+    onChange={(e) =>
+      setAppliancePurchaseDate(e.target.value)
+    }
+  />
+</div>
 
                 <label>
                   구매금액
@@ -746,21 +744,18 @@ export default function App() {
                   />
                 </label>
 
-                <label>
-                  메모
+<label>
+  메모
 
-                  <input
-                    value={
-                      applianceMemo
-                    }
-                    onChange={(e) =>
-                      setApplianceMemo(
-                        e.target.value
-                      )
-                    }
-                    placeholder="메모를 입력하세요"
-                  />
-                </label>
+  <textarea
+    rows={5}
+    value={applianceMemo}
+    onChange={(e) =>
+      setApplianceMemo(e.target.value)
+    }
+    placeholder="메모를 입력하세요"
+  />
+</label>
               </>
             ) : (
               <>
