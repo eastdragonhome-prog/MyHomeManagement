@@ -775,6 +775,9 @@ export default function App() {
             onComplete={
               handleComplete
             }
+            onNavigate={
+              setMenu
+            }
           />
 
         ) : menu === "schedule" ? (
@@ -793,9 +796,6 @@ export default function App() {
             onSelect={
               setSelectedAppliance
             }
-            onDelete={
-              handleDeleteAppliance
-            }
           />
 
         ) : menu === "vehicle" ? (
@@ -804,9 +804,6 @@ export default function App() {
             items={vehicles}
             onSelect={
               setSelectedVehicle
-            }
-            onDelete={
-              handleDeleteVehicle
             }
           />
 
@@ -827,10 +824,6 @@ export default function App() {
             onSelect={
               setSelectedCategoryItem
             }
-            onDelete={
-              handleDeleteCategoryItem
-            }
-            onAdd={openAddModal}
           />
 
         )}
@@ -1817,6 +1810,7 @@ function Dashboard({
   schedules,
   counts,
   onComplete,
+  onNavigate,
 }: {
   groups: {
     urgent: Schedule[];
@@ -1831,15 +1825,19 @@ function Dashboard({
   onComplete: (
     id: number
   ) => void;
+
+  onNavigate: (
+    menu: string
+  ) => void;
 }) {
   const categories = [
-    "가전",
-    "자동차",
-    "보험",
-    "집관리",
-    "가족",
-    "증여",
-    "문서",
+    { id: "appliance", label: "가전" },
+    { id: "vehicle", label: "자동차" },
+    { id: "insurance", label: "보험" },
+    { id: "homecare", label: "집관리" },
+    { id: "family", label: "가족" },
+    { id: "gift", label: "증여" },
+    { id: "documents", label: "문서" },
   ];
 
   return (
@@ -1966,22 +1964,26 @@ function Dashboard({
 
           {categories.map(
             (category) => (
-              <div
+              <button
+                type="button"
                 className="category"
-                key={category}
+                key={category.id}
+                onClick={() =>
+                  onNavigate(category.id)
+                }
               >
 
                 <span>
-                  {category}
+                  {category.label}
                 </span>
 
                 <b>
                   {counts[
-                    category
+                    category.label
                   ] ?? 0}
                 </b>
 
-              </div>
+              </button>
             )
           )}
 
@@ -2170,8 +2172,6 @@ type CategoryPageProps = {
   count: number;
   items?: Item[];
   onSelect?: (item: Item) => void;
-  onDelete?: (id: number) => void | Promise<void>;
-  onAdd: () => void;
 };
 
 function CategoryPage({
@@ -2179,7 +2179,6 @@ function CategoryPage({
   count,
   items = [],
   onSelect,
-  onDelete,
 }: CategoryPageProps) {
   return (
     <section className="section">
@@ -2197,7 +2196,7 @@ function CategoryPage({
           items.map((item) => (
             <div
               key={item.id}
-              className="row"
+              className="row item-row"
               onClick={() => onSelect?.(item)}
               style={{
                 cursor: onSelect ? "pointer" : "default",
@@ -2215,16 +2214,6 @@ function CategoryPage({
 
               <time>{item.purchase_date}</time>
 
-              {onDelete && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void onDelete(item.id);
-                  }}
-                >
-                  삭제
-                </button>
-              )}
             </div>
           ))
         ) : (
@@ -2263,16 +2252,11 @@ function Empty() {
 function AppliancePage({
   items,
   onSelect,
-  onDelete,
 }: {
   items: Item[];
 
   onSelect: (
     item: Item
-  ) => void;
-
-  onDelete: (
-    id: number
   ) => void;
 }) {
   return (
@@ -2304,7 +2288,7 @@ function AppliancePage({
           (x) => (
             <div
               key={x.id}
-              className="row"
+              className="row item-row"
               onClick={() =>
                 onSelect(x)
               }
@@ -2328,15 +2312,6 @@ function AppliancePage({
               <time>
                 {x.purchase_date}
               </time>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(x.id);
-                }}
-              >
-                삭제
-              </button>
 
             </div>
           )
@@ -2362,16 +2337,11 @@ function AppliancePage({
 function VehiclePage({
   items,
   onSelect,
-  onDelete,
 }: {
   items: Item[];
 
   onSelect: (
     item: Item
-  ) => void;
-
-  onDelete: (
-    id: number
   ) => void;
 }) {
   return (
@@ -2403,7 +2373,7 @@ function VehiclePage({
           (x) => (
             <div
               key={x.id}
-              className="row"
+              className="row item-row"
               onClick={() =>
                 onSelect(x)
               }
@@ -2432,15 +2402,6 @@ function VehiclePage({
               <time>
                 {x.purchase_date}
               </time>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(x.id);
-                }}
-              >
-                삭제
-              </button>
 
             </div>
           )
