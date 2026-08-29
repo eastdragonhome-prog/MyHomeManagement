@@ -135,7 +135,9 @@ function txDone(
   );
 }
 
-/* 일정 */
+/* =========================
+   일정
+========================= */
 
 export async function querySchedules(): Promise<
   Schedule[]
@@ -232,7 +234,9 @@ export async function getAllSchedules(): Promise<
   );
 }
 
-/* 가전/관리항목 */
+/* =========================
+   가전 / 관리항목
+========================= */
 
 export async function addItem(
   category: string,
@@ -281,6 +285,21 @@ export async function getItemsByCategory(
   );
 }
 
+export async function getAllItems(): Promise<
+  Item[]
+> {
+  const tx = getDB().transaction(
+    "items",
+    "readonly"
+  );
+
+  return requestResult(
+    tx.objectStore(
+      "items"
+    ).getAll()
+  );
+}
+
 export async function deleteItem(
   id: number
 ): Promise<void> {
@@ -289,9 +308,9 @@ export async function deleteItem(
     "readwrite"
   );
 
-  tx.objectStore("items").delete(
-    id
-  );
+  tx.objectStore(
+    "items"
+  ).delete(id);
 
   await txDone(tx);
 }
@@ -305,24 +324,37 @@ export async function updateItem(
   purchaseDate?: string,
   memo?: string
 ): Promise<void> {
-  const tx = getDB().transaction("items", "readwrite");
-  const store = tx.objectStore("items");
-
-  const row = await requestResult(
-    store.get(id)
+  const tx = getDB().transaction(
+    "items",
+    "readwrite"
   );
+
+  const store =
+    tx.objectStore("items");
+
+  const row =
+    await requestResult(
+      store.get(id)
+    );
 
   if (row) {
     row.name = name;
     row.model = model;
-    row.purchase_price = purchasePrice;
+    row.purchase_price =
+      purchasePrice;
 
-    if (manufacturer !== undefined) {
-      row.manufacturer = manufacturer;
+    if (
+      manufacturer !== undefined
+    ) {
+      row.manufacturer =
+        manufacturer;
     }
 
-    if (purchaseDate !== undefined) {
-      row.purchase_date = purchaseDate;
+    if (
+      purchaseDate !== undefined
+    ) {
+      row.purchase_date =
+        purchaseDate;
     }
 
     if (memo !== undefined) {
@@ -346,16 +378,20 @@ export async function getItemCounts(): Promise<
     number
   > = {};
 
-  rows.forEach((x) => {
-    result[x.category] =
-      (result[x.category] || 0) +
-      1;
-  });
+  rows.forEach(
+    (x: Item) => {
+      result[x.category] =
+        (result[x.category] || 0) +
+        1;
+    }
+  );
 
   return result;
 }
 
-/* 백업 */
+/* =========================
+   백업
+========================= */
 
 export async function exportJson(): Promise<string> {
   return JSON.stringify(
@@ -378,7 +414,7 @@ export async function exportCsvSchedules(): Promise<string> {
     "id,title,due_date,priority";
 
   const body = rows.map(
-    (x) =>
+    (x: Schedule) =>
       `${x.id},"${x.title}",${x.due_date},${x.priority}`
   );
 
