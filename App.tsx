@@ -2186,7 +2186,7 @@ function CategoryPage({
       <div className="section-head">
         <div>
           <h2>{label} 목록</h2>
-          <p>등록된 {label} 항목</p>
+          <p>등록된 {label} 목록</p>
         </div>
 
         <span>{count}건</span>
@@ -2206,13 +2206,11 @@ function CategoryPage({
               <div>
                 <b>{item.name}</b>
 
-                {(item.manufacturer || item.model) && (
-                  <small>
-                    {item.manufacturer}
-                    {item.manufacturer && item.model ? " · " : ""}
-                    {item.model}
-                  </small>
-                )}
+                <small>
+                  {item.manufacturer}
+                  {item.manufacturer && item.model ? " · " : ""}
+                  {item.model}
+                </small>
               </div>
 
               <time>{item.purchase_date}</time>
@@ -2229,11 +2227,11 @@ function CategoryPage({
               )}
             </div>
           ))
-) : (
-  <EmptyItem
-    text={`등록된 ${label}이 없습니다.`}
-  />
-)}
+        ) : (
+          <EmptyItem
+            text={`등록된 ${label}이 없습니다.`}
+          />
+        )}
       </div>
     </section>
   );
