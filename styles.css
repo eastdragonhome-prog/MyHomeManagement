@@ -571,6 +571,20 @@ button.primary:hover {
   color: #315b85;
 }
 
+/* 일정 상태 강조 */
+
+.row.overdue {
+  border-left: 5px solid #dc2626;
+}
+
+.row.soon {
+  border-left: 5px solid #f97316;
+}
+
+.row.normal-date {
+  border-left: 5px solid #3b82f6;
+}
+
 /* =========================
    빈 상태
 ========================= */
@@ -728,6 +742,8 @@ button.primary:hover {
   align-items: center;
   justify-content: center;
 
+  flex-shrink: 0;
+
   border-radius: 15px;
 
   background: #eaf2f9;
@@ -883,7 +899,7 @@ button.primary:hover {
 }
 
 /* =========================
-   ⭐ 모든 입력칸 통일
+   입력칸
 ========================= */
 
 .modal label {
@@ -896,17 +912,6 @@ button.primary:hover {
   font-size: 11px;
   font-weight: 700;
 }
-
-/*
-   현재 App.tsx 구조가
-
-   <label>제품명</label>
-   <div className="input-row">
-      <input />
-   </div>
-
-   형태이므로 input-row도 100%로 강제
-*/
 
 .input-row {
   width: 100%;
@@ -948,6 +953,7 @@ button.primary:hover {
 }
 
 /* 일반 입력 */
+
 .modal input,
 .modal select,
 .input-row input,
@@ -958,13 +964,9 @@ button.primary:hover {
 }
 
 /* 메모 */
+
 .modal textarea,
 .input-row textarea {
-  width: 100% !important;
-
-  min-width: 100%;
-  max-width: 100%;
-
   min-height: 160px;
 
   padding: 12px 14px;
@@ -975,6 +977,7 @@ button.primary:hover {
 }
 
 /* 메모 전용 행 */
+
 .memo-row {
   width: 100%;
 
@@ -988,6 +991,7 @@ button.primary:hover {
 }
 
 /* 포커스 */
+
 .modal input:focus,
 .modal select:focus,
 .modal textarea:focus,
@@ -1001,12 +1005,14 @@ button.primary:hover {
 }
 
 /* 날짜 */
+
 .modal input[type="date"],
 .input-row input[type="date"] {
   padding: 0 14px;
 }
 
 /* 선택창 */
+
 .modal select {
   cursor: pointer;
 }
@@ -1119,23 +1125,7 @@ button.primary:hover {
 }
 
 /* =========================
-   일정 강조
-========================= */
-
-.row.overdue {
-  border-left: 5px solid #dc2626;
-}
-
-.row.soon {
-  border-left: 5px solid #f97316;
-}
-
-.row.normal-date {
-  border-left: 5px solid #3b82f6;
-}
-
-/* =========================
-   모바일
+   태블릿
 ========================= */
 
 @media (max-width: 900px) {
@@ -1156,6 +1146,10 @@ button.primary:hover {
       repeat(2, 1fr);
   }
 }
+
+/* =========================
+   모바일
+========================= */
 
 @media (max-width: 700px) {
   .shell {
@@ -1305,6 +1299,16 @@ button.primary:hover {
       repeat(2, 1fr);
   }
 
+  .category {
+    min-height: 85px;
+
+    padding: 15px;
+  }
+
+  .category b {
+    font-size: 24px;
+  }
+
   .category-hero {
     padding: 18px;
   }
@@ -1321,11 +1325,8 @@ button.primary:hover {
     grid-template-columns: 1fr;
   }
 
-  .category b {
-    font-size: 24px;
-  }
-
   /* 모바일 모달 */
+
   .modal-bg {
     padding: 12px;
   }
