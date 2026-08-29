@@ -492,6 +492,11 @@ button.primary:hover {
   border-bottom: 1px solid #edf1f5;
 }
 
+/* 가전·자동차·보험 등 관리 목록: 제목과 날짜만 표시 */
+.item-row {
+  grid-template-columns: minmax(0, 1fr) 110px;
+}
+
 .row:last-child {
   border-bottom: 0;
 }
@@ -640,12 +645,19 @@ button.primary:hover {
 .category {
   min-height: 85px;
 
+  width: 100%;
+
   padding: 18px;
 
   border: 1px solid #e3e9f0;
   border-radius: 12px;
 
   background: #ffffff;
+
+  appearance: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 
   display: flex;
   flex-direction: column;
@@ -1292,6 +1304,10 @@ button.primary:hover {
 
   .row button {
     display: none;
+  }
+
+  .item-row {
+    grid-template-columns: minmax(0, 1fr) 70px;
   }
 
   .category-grid {
