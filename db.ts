@@ -295,7 +295,36 @@ export async function deleteItem(
 
   await txDone(tx);
 }
+export async function updateItem(
+  id: number,
+  name: string,
+  model = "",
+  purchasePrice = 0
+): Promise<void> {
+  const tx = getDB().transaction(
+    "items",
+    "readwrite"
+  );
 
+  const store =
+    tx.objectStore("items");
+
+  const row =
+    await requestResult(
+      store.get(id)
+    );
+
+  if (row) {
+    row.name = name;
+    row.model = model;
+    row.purchase_price =
+      purchasePrice;
+
+    store.put(row);
+  }
+
+  await txDone(tx);
+}
 export async function getAllItems(): Promise<
   Item[]
 > {
