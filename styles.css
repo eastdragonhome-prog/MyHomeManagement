@@ -1141,3 +1141,35 @@ button.primary:hover {
   font-size: 16px;
   line-height: 1.5;
 }
+/* 메모 입력창 */
+.memo-row {
+  width: 100%;
+}
+
+.memo-row textarea {
+  display: block;
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 160px;
+  padding: 12px;
+  box-sizing: border-box;
+
+  border: 1px solid #dfe6ee;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #26364a;
+
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+
+  resize: vertical;
+}
+
+.memo-row textarea:focus {
+  outline: none;
+  border-color: #8da8c2;
+  box-shadow: 0 0 0 3px rgba(49, 91, 133, 0.08);
+}
