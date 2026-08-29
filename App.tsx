@@ -867,10 +867,18 @@ function AppliancePage({
 
       <div className="list">
         {items.map((x) => (
-          <div
-            key={x.id}
-            className="row"
-          >
+            <div
+              key={x.id}
+              className="row"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent("select-appliance", {
+                    detail: x,
+                  })
+                )
+              }
+              style={{ cursor: "pointer" }}
+            >
             <div>
               <b>{x.name}</b>
 
@@ -883,9 +891,19 @@ function AppliancePage({
               {x.purchase_date}
             </time>
 
-            <button>
-              삭제
-            </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+          
+              window.dispatchEvent(
+                new CustomEvent("delete-appliance", {
+                  detail: x.id,
+                })
+              );
+            }}
+          >
+            삭제
+          </button>
           </div>
         ))}
 
