@@ -2182,76 +2182,58 @@ function CategoryPage({
   onDelete,
 }: CategoryPageProps) {
   return (
-    <div>
-      <section className="category-hero">
-        <div className="big-icon">□</div>
-
+    <section className="section">
+      <div className="section-head">
         <div>
-          <h2>{label}</h2>
-
-          <p>
-            관리 대상과 기록, 일정,
-            문서를 관리합니다.
-          </p>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <div>
-            <h2>{label} 목록</h2>
-
-            <p>등록된 {label} 항목</p>
-          </div>
-
-          <span>{count}건</span>
+          <h2>{label} 목록</h2>
+          <p>등록된 {label} 항목</p>
         </div>
 
-        <div className="list">
-          {items.length > 0 ? (
-            items.map((item) => (
-              <div
-                key={item.id}
-                className="row"
-                onClick={() => onSelect?.(item)}
-                style={{
-                  cursor: onSelect ? "pointer" : "default",
-                }}
-              >
-                <div>
-                  <b>{item.name}</b>
+        <span>{count}건</span>
+      </div>
 
-                  {(item.manufacturer || item.model) && (
-                    <small>
-                      {item.manufacturer}
-                      {item.manufacturer && item.model ? " · " : ""}
-                      {item.model}
-                    </small>
-                  )}
-                </div>
+      <div className="list">
+        {items.length > 0 ? (
+          items.map((item) => (
+            <div
+              key={item.id}
+              className="row"
+              onClick={() => onSelect?.(item)}
+              style={{
+                cursor: onSelect ? "pointer" : "default",
+              }}
+            >
+              <div>
+                <b>{item.name}</b>
 
-                <time>{item.purchase_date}</time>
-
-                {onDelete && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void onDelete(item.id);
-                    }}
-                  >
-                    삭제
-                  </button>
+                {(item.manufacturer || item.model) && (
+                  <small>
+                    {item.manufacturer}
+                    {item.manufacturer && item.model ? " · " : ""}
+                    {item.model}
+                  </small>
                 )}
               </div>
-            ))
-          ) : (
-            <p className="empty-message">
-              등록된 {label} 항목이 없습니다.
-            </p>
-          )}
-        </div>
-      </section>
-    </div>
+
+              <time>{item.purchase_date}</time>
+
+              {onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void onDelete(item.id);
+                  }}
+                >
+                  삭제
+                </button>
+              )}
+            </div>
+          ))
+        ) : (
+          <p>등록된 {label} 항목이 없습니다.</p>
+        )}
+      </div>
+    </section>
   );
 }
 
