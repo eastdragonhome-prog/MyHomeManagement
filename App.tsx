@@ -77,10 +77,16 @@ export default function App() {
   const [appliances, setAppliances] =
     useState<Item[]>([]);
 
+  const [vehicles, setVehicles] =
+    useState<Item[]>([]);
+
   const [modal, setModal] =
     useState(false);
 
   const [selectedAppliance, setSelectedAppliance] =
+    useState<Item | null>(null);
+
+  const [selectedVehicle, setSelectedVehicle] =
     useState<Item | null>(null);
 
   const [editingId, setEditingId] =
@@ -115,6 +121,25 @@ export default function App() {
   const [applianceMemo, setApplianceMemo] =
     useState("");
 
+  /* 자동차 입력 */
+  const [vehicleName, setVehicleName] =
+    useState("");
+
+  const [vehicleManufacturer, setVehicleManufacturer] =
+    useState("");
+
+  const [vehicleModel, setVehicleModel] =
+    useState("");
+
+  const [vehiclePurchaseDate, setVehiclePurchaseDate] =
+    useState("");
+
+  const [vehiclePrice, setVehiclePrice] =
+    useState("");
+
+  const [vehicleMemo, setVehicleMemo] =
+    useState("");
+
   async function refresh() {
     const scheduleData =
       await querySchedules();
@@ -125,9 +150,13 @@ export default function App() {
     const applianceData =
       await getItemsByCategory("가전");
 
+    const vehicleData =
+      await getItemsByCategory("자동차");
+
     setSchedules(scheduleData);
     setCounts(countData);
     setAppliances(applianceData);
+    setVehicles(vehicleData);
   }
 
   useEffect(() => {
@@ -165,6 +194,12 @@ export default function App() {
     [schedules]
   );
 
+  function resetScheduleForm() {
+    setTitle("");
+    setDate("");
+    setPriority(2);
+  }
+
   function resetApplianceForm() {
     setApplianceName("");
     setApplianceManufacturer("");
@@ -175,14 +210,25 @@ export default function App() {
     setEditingId(null);
   }
 
-  function openAddModal() {
-    if (menu !== "appliance") {
-      setTitle("");
-      setDate("");
-      setPriority(2);
-    }
+  function resetVehicleForm() {
+    setVehicleName("");
+    setVehicleManufacturer("");
+    setVehicleModel("");
+    setVehiclePurchaseDate("");
+    setVehiclePrice("");
+    setVehicleMemo("");
+    setEditingId(null);
+  }
 
+  function openAddModal() {
+    setEditingId(null);
+    setSelectedAppliance(null);
+    setSelectedVehicle(null);
+
+    resetScheduleForm();
     resetApplianceForm();
+    resetVehicleForm();
+
     setModal(true);
   }
 
@@ -219,7 +265,46 @@ export default function App() {
     );
 
     setSelectedAppliance(null);
+    setSelectedVehicle(null);
     setMenu("appliance");
+    setModal(true);
+  }
+
+  function openVehicleEdit(
+    vehicle: Item
+  ) {
+    setEditingId(vehicle.id);
+
+    setVehicleName(
+      vehicle.name || ""
+    );
+
+    setVehicleManufacturer(
+      vehicle.manufacturer || ""
+    );
+
+    setVehicleModel(
+      vehicle.model || ""
+    );
+
+    setVehiclePurchaseDate(
+      vehicle.purchase_date || ""
+    );
+
+    setVehiclePrice(
+      vehicle.purchase_price !== undefined &&
+      vehicle.purchase_price !== null
+        ? String(vehicle.purchase_price)
+        : ""
+    );
+
+    setVehicleMemo(
+      vehicle.memo || ""
+    );
+
+    setSelectedAppliance(null);
+    setSelectedVehicle(null);
+    setMenu("vehicle");
     setModal(true);
   }
 
@@ -259,6 +344,42 @@ export default function App() {
     await refresh();
   }
 
+  async function saveVehicle() {
+    if (!vehicleName.trim()) {
+      return;
+    }
+
+    const price =
+      Number(vehiclePrice) || 0;
+
+    if (editingId !== null) {
+      await updateItem(
+        editingId,
+        vehicleName.trim(),
+        vehicleModel.trim(),
+        price,
+        vehicleManufacturer.trim(),
+        vehiclePurchaseDate,
+        vehicleMemo.trim()
+      );
+    } else {
+      await addItem(
+        "자동차",
+        vehicleName.trim(),
+        vehicleManufacturer.trim(),
+        vehicleModel.trim(),
+        vehiclePurchaseDate,
+        price,
+        vehicleMemo.trim()
+      );
+    }
+
+    resetVehicleForm();
+    setModal(false);
+
+    await refresh();
+  }
+
   async function saveSchedule() {
     if (!title.trim() || !date) {
       return;
@@ -270,9 +391,7 @@ export default function App() {
       priority
     );
 
-    setTitle("");
-    setDate("");
-    setPriority(2);
+    resetScheduleForm();
     setModal(false);
 
     await refresh();
@@ -292,6 +411,24 @@ export default function App() {
     await deleteItem(id);
 
     setSelectedAppliance(null);
+
+    await refresh();
+  }
+
+  async function handleDeleteVehicle(
+    id: number
+  ) {
+    if (
+      !window.confirm(
+        "이 자동차를 삭제하시겠습니까?"
+      )
+    ) {
+      return;
+    }
+
+    await deleteItem(id);
+
+    setSelectedVehicle(null);
 
     await refresh();
   }
@@ -332,6 +469,9 @@ export default function App() {
       </div>
     );
   }
+
+  const currentCategory =
+    CATEGORY_MAP[menu];
 
   return (
     <div className="shell">
@@ -455,15 +595,25 @@ export default function App() {
               handleDeleteAppliance
             }
           />
+        ) : menu === "vehicle" ? (
+          <VehiclePage
+            items={vehicles}
+            onSelect={
+              setSelectedVehicle
+            }
+            onDelete={
+              handleDeleteVehicle
+            }
+          />
         ) : (
           <CategoryPage
             label={
-              CATEGORY_MAP[menu] ??
+              currentCategory ??
               "관리"
             }
             count={
               counts[
-                CATEGORY_MAP[menu] ??
+                currentCategory ??
                   ""
               ] ?? 0
             }
@@ -476,6 +626,7 @@ export default function App() {
       {/* =========================
           가전 상세 모달
           ========================= */}
+
       {selectedAppliance && (
         <div
           className="modal-bg"
@@ -614,8 +765,146 @@ export default function App() {
       )}
 
       {/* =========================
+          자동차 상세 모달
+          ========================= */}
+
+      {selectedVehicle && (
+        <div
+          className="modal-bg"
+          onClick={() =>
+            setSelectedVehicle(null)
+          }
+        >
+
+          <div
+            className="modal appliance-detail-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            <div className="modal-title">
+
+              <div>
+                <small>
+                  VEHICLE DETAIL
+                </small>
+
+                <h2>
+                  {
+                    selectedVehicle.name
+                  }
+                </h2>
+              </div>
+
+              <button
+                onClick={() =>
+                  setSelectedVehicle(null)
+                }
+              >
+                ×
+              </button>
+
+            </div>
+
+            <div className="detail-field">
+              <span>제조사</span>
+
+              <div className="detail-value">
+                {
+                  selectedVehicle.manufacturer ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>모델명</span>
+
+              <div className="detail-value">
+                {
+                  selectedVehicle.model ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>구매일</span>
+
+              <div className="detail-value">
+                {
+                  selectedVehicle.purchase_date ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>구매금액</span>
+
+              <div className="detail-value">
+                {
+                  selectedVehicle.purchase_price
+                    ? `${selectedVehicle.purchase_price.toLocaleString()}원`
+                    : "-"
+                }
+              </div>
+            </div>
+
+            <div className="detail-field">
+              <span>메모</span>
+
+              <div className="detail-value detail-memo">
+                {
+                  selectedVehicle.memo ||
+                  "-"
+                }
+              </div>
+            </div>
+
+            <div className="modal-actions">
+
+              <button
+                onClick={() =>
+                  openVehicleEdit(
+                    selectedVehicle
+                  )
+                }
+              >
+                수정
+              </button>
+
+              <button
+                className="primary"
+                onClick={() =>
+                  handleDeleteVehicle(
+                    selectedVehicle.id
+                  )
+                }
+              >
+                삭제
+              </button>
+
+              <button
+                onClick={() =>
+                  setSelectedVehicle(null)
+                }
+              >
+                닫기
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* =========================
           등록 / 수정 모달
           ========================= */}
+
       {modal && (
         <div
           className="modal-bg"
@@ -634,11 +923,18 @@ export default function App() {
             <div className="modal-title">
 
               <div>
+
                 <small>
                   {menu === "appliance"
                     ? editingId !== null
                       ? "EDIT APPLIANCE"
-                      : "QUICK ADD"
+                      : "ADD APPLIANCE"
+                    : menu === "vehicle"
+                    ? editingId !== null
+                      ? "EDIT VEHICLE"
+                      : "ADD VEHICLE"
+                    : menu === "schedule"
+                    ? "ADD SCHEDULE"
                     : "QUICK ADD"}
                 </small>
 
@@ -647,8 +943,13 @@ export default function App() {
                     ? editingId !== null
                       ? "가전 수정"
                       : "가전 등록"
+                    : menu === "vehicle"
+                    ? editingId !== null
+                      ? "자동차 수정"
+                      : "자동차 등록"
                     : "일정 등록"}
                 </h2>
+
               </div>
 
               <button
@@ -661,97 +962,242 @@ export default function App() {
 
             </div>
 
+            {/* =========================
+                가전 등록
+                ========================= */}
+
             {menu === "appliance" ? (
               <>
-  <label>
-    제품명
-  </label>
 
-  <div className="input-row">
-    <input
-      value={applianceName}
-      onChange={(e) =>
-        setApplianceName(e.target.value)
-      }
-    />
-  </div>
+                <label>
+                  제품명
+                </label>
 
-  <label>
-    제조사
-  </label>
+                <div className="input-row">
+                  <input
+                    value={applianceName}
+                    onChange={(e) =>
+                      setApplianceName(
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
 
-  <div className="input-row">
-    <input
-      value={applianceManufacturer}
-      onChange={(e) =>
-        setApplianceManufacturer(e.target.value)
-      }
-    />
-  </div>
+                <label>
+                  제조사
+                </label>
 
-  <label>
-    모델명
-  </label>
+                <div className="input-row">
+                  <input
+                    value={
+                      applianceManufacturer
+                    }
+                    onChange={(e) =>
+                      setApplianceManufacturer(
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
 
-  <div className="input-row">
-    <input
-      value={applianceModel}
-      onChange={(e) =>
-        setApplianceModel(e.target.value)
-      }
-    />
-  </div>
+                <label>
+                  모델명
+                </label>
 
-  <label>
-    구매일
-  </label>
+                <div className="input-row">
+                  <input
+                    value={applianceModel}
+                    onChange={(e) =>
+                      setApplianceModel(
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
 
-  <div className="input-row">
-    <input
-      className="appliance-date-input"
-      type="date"
-      value={appliancePurchaseDate}
-      onChange={(e) =>
-        setAppliancePurchaseDate(
-          e.target.value
-        )
-      }
-    />
-  </div>
+                <label>
+                  구매일
+                </label>
 
-  <label>
-    구매금액
-  </label>
+                <div className="input-row">
+                  <input
+                    className="appliance-date-input"
+                    type="date"
+                    value={
+                      appliancePurchaseDate
+                    }
+                    onChange={(e) =>
+                      setAppliancePurchaseDate(
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
 
-  <div className="input-row">
-    <input
-      type="number"
-      value={appliancePrice}
-      onChange={(e) =>
-        setAppliancePrice(
-          e.target.value
-        )
-      }
-    />
-  </div>
+                <label>
+                  구매금액
+                </label>
 
-<label>
-  메모
-</label>
+                <div className="input-row">
+                  <input
+                    type="number"
+                    value={
+                      appliancePrice
+                    }
+                    onChange={(e) =>
+                      setAppliancePrice(
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
 
-<div className="input-row memo-row">
-  <textarea
-    rows={6}
-    value={applianceMemo}
-    onChange={(e) =>
-      setApplianceMemo(e.target.value)
-    }
-    placeholder="메모를 입력하세요"
-  />
-</div>
-</>
-            ) : (
+                <label>
+                  메모
+                </label>
+
+                <div className="input-row memo-row">
+                  <textarea
+                    rows={6}
+                    value={
+                      applianceMemo
+                    }
+                    onChange={(e) =>
+                      setApplianceMemo(
+                        e.target.value
+                      )
+                    }
+                    placeholder="메모를 입력하세요"
+                  />
+                </div>
+
+              </>
+
+            ) : menu === "vehicle" ? (
+
+              /* =========================
+                 자동차 등록
+                 ========================= */
+
               <>
+
+                <label>
+                  차량명
+                </label>
+
+                <div className="input-row">
+                  <input
+                    value={vehicleName}
+                    onChange={(e) =>
+                      setVehicleName(
+                        e.target.value
+                      )
+                    }
+                    placeholder="예: 쏘렌토"
+                  />
+                </div>
+
+                <label>
+                  제조사
+                </label>
+
+                <div className="input-row">
+                  <input
+                    value={
+                      vehicleManufacturer
+                    }
+                    onChange={(e) =>
+                      setVehicleManufacturer(
+                        e.target.value
+                      )
+                    }
+                    placeholder="예: 기아"
+                  />
+                </div>
+
+                <label>
+                  모델명
+                </label>
+
+                <div className="input-row">
+                  <input
+                    value={vehicleModel}
+                    onChange={(e) =>
+                      setVehicleModel(
+                        e.target.value
+                      )
+                    }
+                    placeholder="예: MQ4"
+                  />
+                </div>
+
+                <label>
+                  구매일
+                </label>
+
+                <div className="input-row">
+                  <input
+                    type="date"
+                    value={
+                      vehiclePurchaseDate
+                    }
+                    onChange={(e) =>
+                      setVehiclePurchaseDate(
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+
+                <label>
+                  구매금액
+                </label>
+
+                <div className="input-row">
+                  <input
+                    type="number"
+                    value={
+                      vehiclePrice
+                    }
+                    onChange={(e) =>
+                      setVehiclePrice(
+                        e.target.value
+                      )
+                    }
+                    placeholder="원"
+                  />
+                </div>
+
+                <label>
+                  메모
+                </label>
+
+                <div className="input-row memo-row">
+                  <textarea
+                    rows={6}
+                    value={
+                      vehicleMemo
+                    }
+                    onChange={(e) =>
+                      setVehicleMemo(
+                        e.target.value
+                      )
+                    }
+                    placeholder="차량 관련 메모를 입력하세요"
+                  />
+                </div>
+
+              </>
+
+            ) : (
+
+              /* =========================
+                 일정 등록
+                 ========================= */
+
+              <>
+
                 <label>
                   할 일
 
@@ -805,7 +1251,9 @@ export default function App() {
                     </option>
                   </select>
                 </label>
+
               </>
+
             )}
 
             <div className="modal-actions">
@@ -820,11 +1268,19 @@ export default function App() {
 
               <button
                 className="primary"
-                onClick={() =>
-                  menu === "appliance"
-                    ? saveAppliance()
-                    : saveSchedule()
-                }
+                onClick={() => {
+                  if (
+                    menu === "appliance"
+                  ) {
+                    saveAppliance();
+                  } else if (
+                    menu === "vehicle"
+                  ) {
+                    saveVehicle();
+                  } else {
+                    saveSchedule();
+                  }
+                }}
               >
                 저장
               </button>
@@ -839,6 +1295,7 @@ export default function App() {
     </div>
   );
 }
+
 
 /* =========================
    Dashboard
@@ -880,7 +1337,9 @@ function Dashboard({
       <section className="hero">
 
         <div>
-          <small>TODAY</small>
+          <small>
+            TODAY
+          </small>
 
           <h2>
             이번 달에 해야 할 일을
@@ -890,6 +1349,7 @@ function Dashboard({
         </div>
 
         <div className="hero-count">
+
           <b>
             {schedules.length}
           </b>
@@ -897,6 +1357,7 @@ function Dashboard({
           <span>
             개의 예정 일정
           </span>
+
         </div>
 
       </section>
@@ -998,6 +1459,7 @@ function Dashboard({
                 className="category"
                 key={category}
               >
+
                 <span>
                   {category}
                 </span>
@@ -1007,6 +1469,7 @@ function Dashboard({
                     category
                   ] ?? 0}
                 </b>
+
               </div>
             )
           )}
@@ -1018,6 +1481,7 @@ function Dashboard({
     </div>
   );
 }
+
 
 /* =========================
    Card
@@ -1038,6 +1502,7 @@ function Card({
     <div
       className={`card ${cls}`}
     >
+
       <span>
         {title}
       </span>
@@ -1050,9 +1515,11 @@ function Card({
       <small>
         {desc}
       </small>
+
     </div>
   );
 }
+
 
 /* =========================
    Schedule Row
@@ -1095,6 +1562,7 @@ function Row({
       </strong>
 
       <div>
+
         <b>
           {item.title}
         </b>
@@ -1102,6 +1570,7 @@ function Row({
         <small>
           {item.category}
         </small>
+
       </div>
 
       <time>
@@ -1119,6 +1588,7 @@ function Row({
     </div>
   );
 }
+
 
 /* =========================
    Schedule Page
@@ -1179,6 +1649,7 @@ function SchedulePage({
   );
 }
 
+
 /* =========================
    Category Page
    ========================= */
@@ -1202,6 +1673,7 @@ function CategoryPage({
         </div>
 
         <div>
+
           <h2>
             {label}
           </h2>
@@ -1210,6 +1682,7 @@ function CategoryPage({
             관리 대상과 기록, 일정,
             문서를 관리합니다.
           </p>
+
         </div>
 
         <button
@@ -1251,6 +1724,7 @@ function CategoryPage({
   );
 }
 
+
 /* =========================
    Empty
    ========================= */
@@ -1268,6 +1742,7 @@ function Empty() {
     </div>
   );
 }
+
 
 /* =========================
    Appliance Page
@@ -1325,6 +1800,7 @@ function AppliancePage({
             >
 
               <div>
+
                 <b>
                   {x.name}
                 </b>
@@ -1332,6 +1808,7 @@ function AppliancePage({
                 <small>
                   {x.model}
                 </small>
+
               </div>
 
               <time>
@@ -1341,7 +1818,6 @@ function AppliancePage({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-
                   onDelete(x.id);
                 }}
               >
@@ -1353,11 +1829,138 @@ function AppliancePage({
         )}
 
         {!items.length && (
-          <Empty />
+          <EmptyItem
+            text="등록된 가전이 없습니다."
+          />
         )}
 
       </div>
 
     </section>
+  );
+}
+
+
+/* =========================
+   Vehicle Page
+   ========================= */
+
+function VehiclePage({
+  items,
+  onSelect,
+  onDelete,
+}: {
+  items: Item[];
+
+  onSelect: (
+    item: Item
+  ) => void;
+
+  onDelete: (
+    id: number
+  ) => void;
+}) {
+  return (
+    <section className="section">
+
+      <div className="section-head">
+
+        <div>
+          <h2>
+            자동차관리
+          </h2>
+
+          <p>
+            등록된 자동차 목록
+          </p>
+        </div>
+
+        <span>
+          {items.length}건
+        </span>
+
+      </div>
+
+      <div className="list">
+
+        {items.map(
+          (x) => (
+            <div
+              key={x.id}
+              className="row"
+              onClick={() =>
+                onSelect(x)
+              }
+              style={{
+                cursor: "pointer",
+              }}
+            >
+
+              <div>
+
+                <b>
+                  {x.name}
+                </b>
+
+                <small>
+                  {x.manufacturer}
+                  {x.manufacturer &&
+                    x.model
+                    ? " · "
+                    : ""}
+                  {x.model}
+                </small>
+
+              </div>
+
+              <time>
+                {x.purchase_date}
+              </time>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(x.id);
+                }}
+              >
+                삭제
+              </button>
+
+            </div>
+          )
+        )}
+
+        {!items.length && (
+          <EmptyItem
+            text="등록된 자동차가 없습니다."
+          />
+        )}
+
+      </div>
+
+    </section>
+  );
+}
+
+
+/* =========================
+   Empty Item
+   ========================= */
+
+function EmptyItem({
+  text,
+}: {
+  text: string;
+}) {
+  return (
+    <div className="empty">
+
+      <b>＋</b>
+
+      <p>
+        {text}
+      </p>
+
+    </div>
   );
 }
