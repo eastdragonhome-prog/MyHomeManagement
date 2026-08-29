@@ -530,83 +530,132 @@ async function saveAppliance() {
         </div>
       )}
       {selectedAppliance && (
+<div
+  className="modal-bg"
+  onClick={() => setSelectedAppliance(null)}
+>
   <div
-    className="modal-bg"
-    onClick={() => setSelectedAppliance(null)}
+    className="modal"
+    onClick={(e) => e.stopPropagation()}
   >
-    <div
-      className="modal"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="modal-title">
-        <div>
-          <small>APPLIANCE DETAIL</small>
-          <h2>{selectedAppliance.name}</h2>
-        </div>
-
-        <button
-          onClick={() => setSelectedAppliance(null)}
-        >
-          ×
-        </button>
+    <div className="modal-title">
+      <div>
+        <small>APPLIANCE DETAIL</small>
+        <h2>{selectedAppliance.name}</h2>
       </div>
 
-      <label>
-        제조사
-        <input
-          value={selectedAppliance.manufacturer || ""}
-          readOnly
-        />
-      </label>
+      <button
+        onClick={() =>
+          setSelectedAppliance(null)
+        }
+      >
+        ×
+      </button>
+    </div>
 
-      <label>
-        모델명
-        <input
-          value={selectedAppliance.model || ""}
-          readOnly
-        />
-      </label>
+    <label>
+      제조사
+      <input
+        value={
+          selectedAppliance.manufacturer || ""
+        }
+        readOnly
+      />
+    </label>
 
-      <label>
-        구매일
-        <input
-          value={selectedAppliance.purchase_date || ""}
-          readOnly
-        />
-      </label>
+    <label>
+      모델명
+      <input
+        value={
+          selectedAppliance.model || ""
+        }
+        readOnly
+      />
+    </label>
 
-      <label>
-        구매금액
-        <input
-          value={
-            selectedAppliance.purchase_price
-              ? `${selectedAppliance.purchase_price.toLocaleString()}원`
-              : ""
-          }
-          readOnly
-        />
-      </label>
+    <label>
+      구매일
+      <input
+        value={
+          selectedAppliance.purchase_date || ""
+        }
+        readOnly
+      />
+    </label>
 
-      <label>
-        메모
-        <input
-          value={selectedAppliance.memo || ""}
-          readOnly
-        />
-      </label>
+    <label>
+      구매금액
+      <input
+        value={
+          selectedAppliance.purchase_price
+            ? `${selectedAppliance.purchase_price.toLocaleString()}원`
+            : ""
+        }
+        readOnly
+      />
+    </label>
 
-      <div className="modal-actions">
-        <button
-          onClick={() =>
-            setSelectedAppliance(null)
-          }
-        >
-          닫기
-        </button>
-      </div>
+    <label>
+      메모
+      <input
+        value={
+          selectedAppliance.memo || ""
+        }
+        readOnly
+      />
+    </label>
+
+    <div className="modal-actions">
+      <button
+        onClick={() => {
+          setEditingId(
+            selectedAppliance.id
+          );
+
+          setMenu("appliance");
+
+          setApplianceName(
+            selectedAppliance.name || ""
+          );
+
+          setApplianceModel(
+            selectedAppliance.model || ""
+          );
+
+          setAppliancePrice(
+            String(
+              selectedAppliance.purchase_price || ""
+            )
+          );
+
+          setSelectedAppliance(null);
+          setModal(true);
+        }}
+      >
+        수정
+      </button>
+
+      <button
+        className="primary"
+        onClick={() =>
+          handleDeleteAppliance(
+            selectedAppliance.id
+          )
+        }
+      >
+        삭제
+      </button>
+
+      <button
+        onClick={() =>
+          setSelectedAppliance(null)
+        }
+      >
+        닫기
+      </button>
     </div>
   </div>
-)}
+</div>
 
       {modal && (
         <div
