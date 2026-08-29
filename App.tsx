@@ -739,20 +739,14 @@ export default function App() {
   메모
 </label>
 
-<div className="input-row">
+<div className="input-row memo-row">
   <textarea
-    rows={5}
+    rows={6}
     value={applianceMemo}
     onChange={(e) =>
       setApplianceMemo(e.target.value)
     }
     placeholder="메모를 입력하세요"
-    style={{
-      width: "100%",
-      minHeight: "120px",
-      boxSizing: "border-box",
-      resize: "vertical",
-    }}
   />
 </div>
 </>
