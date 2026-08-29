@@ -814,20 +814,6 @@ button.primary:hover {
   font-weight: 700;
 }
 
-.modal input,
-.modal select {
-  height: 50px;
-  font-size: 16px;
-}
-
-.modal input:focus,
-.modal select:focus {
-  border-color: #8da8c2;
-
-  box-shadow:
-    0 0 0 3px rgba(49, 91, 133, 0.08);
-}
-
 .modal-actions {
   display: flex;
 
@@ -1172,4 +1158,57 @@ button.primary:hover {
   outline: none;
   border-color: #8da8c2;
   box-shadow: 0 0 0 3px rgba(49, 91, 133, 0.08);
+}
+/* =========================
+   모든 입력칸 스타일 통일
+========================= */
+
+.modal input,
+.modal select,
+.modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #dfe6ee;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #26364a;
+
+  font-family: inherit;
+  font-size: 16px;
+
+  outline: none;
+}
+
+.modal input,
+.modal select {
+  height: 50px;
+  padding: 0 12px;
+}
+
+.modal textarea {
+  min-height: 160px;
+  padding: 12px;
+
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* 포커스 시에도 같은 색상 계열 */
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+  border-color: #8da8c2;
+  box-shadow: 0 0 0 3px rgba(49, 91, 133, 0.08);
+}
+
+/* 날짜 입력칸 */
+.modal input[type="date"] {
+  padding: 0 12px;
+}
+
+/* 선택창 */
+.modal select {
+  cursor: pointer;
 }
