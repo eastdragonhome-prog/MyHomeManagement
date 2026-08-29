@@ -79,6 +79,10 @@ export default function App() {
   const [priority, setPriority] = useState(2);
   const [appliances, setAppliances] =
   useState<Item[]>([]);
+
+  const [selectedAppliance, setSelectedAppliance] =
+  useState<Item | null>(null);
+  
   const [selectedAppliance, setSelectedAppliance] =
   useState<Item | null>(null);
   const [applianceName, setApplianceName] =
@@ -104,7 +108,15 @@ async function refresh() {
   setCounts(countData);
   setAppliances(applianceData);
 }
+async function handleDeleteAppliance(id: number) {
+  if (!window.confirm("이 가전을 삭제하시겠습니까?")) {
+    return;
+  }
 
+  await deleteItem(id);
+  setSelectedAppliance(null);
+  await refresh();
+}
   useEffect(() => {
     initDB()
       .then(async () => {
@@ -133,6 +145,30 @@ useEffect(() => {
     );
   };
 }, []);
+
+useEffect(() => {
+  const deleteAppliance = (event: Event) => {
+    const customEvent =
+      event as CustomEvent<number>;
+
+    handleDeleteAppliance(
+      customEvent.detail
+    );
+  };
+
+  window.addEventListener(
+    "delete-appliance",
+    deleteAppliance
+  );
+
+  return () => {
+    window.removeEventListener(
+      "delete-appliance",
+      deleteAppliance
+    );
+  };
+}, []);
+  
   const groups = useMemo(
     () => ({
       urgent: schedules.filter(
