@@ -2229,9 +2229,11 @@ function CategoryPage({
               )}
             </div>
           ))
-        ) : (
-          <p>등록된 {label} 항목이 없습니다.</p>
-        )}
+) : (
+  <EmptyItem
+    text={`등록된 ${label}이 없습니다.`}
+  />
+)}
       </div>
     </section>
   );
