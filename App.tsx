@@ -488,22 +488,32 @@ async function saveAppliance() {
               >
                 닫기
               </button>
-              <button
-                onClick={() => {
-                  setEditingId(selectedAppliance.id);
-              
-                  setMenu("appliance");
-              
-                  setApplianceName(
-                    selectedAppliance.name || ""
-                  );
-              
-                  setModal(true);
-                  setSelectedAppliance(null);
-                }}
-              >
-                수정
-              </button>
+<button
+  onClick={() => {
+    setEditingId(selectedAppliance.id);
+
+    setMenu("appliance");
+
+    setApplianceName(
+      selectedAppliance.name || ""
+    );
+
+    setApplianceModel(
+      selectedAppliance.model || ""
+    );
+
+    setAppliancePrice(
+      String(
+        selectedAppliance.purchase_price || ""
+      )
+    );
+
+    setSelectedAppliance(null);
+    setModal(true);
+  }}
+>
+  수정
+</button>
               <button
                 className="primary"
                 onClick={() =>
